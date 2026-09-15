@@ -5,13 +5,14 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pill, Row, Section, Tip } from '@/components/GroupedList';
+import { AppText } from '@/components/AppText';
 import { Check, Clock, Cpu, Layers, MessageNotif, RotateCcw, Slash, Wallet, WifiOff } from '@/components/icons';
 import { ModalLayout } from '@/components/ModalLayout';
 import { useStores } from '@/hooks/useStores';
 import { billingConfig, container } from '@/services/container';
 import type { PurchaseOutcome } from '@/services/api/BillingApi';
 import type { Faults } from '@/services/mock/faults';
-import { colors, spacing } from '@/theme/tokens';
+import { colors, radii, spacing } from '@/theme/tokens';
 
 const FAILS: { label: string; value: Faults['failNextSend'] }[] = [
   { label: 'None', value: null }, { label: 'Rate limited (recoverable)', value: 'RATE_LIMITED' }, { label: 'Blocked', value: 'BLOCKED' }, { label: 'Needs payment', value: 'PAYMENT_REQUIRED' },
@@ -20,11 +21,19 @@ const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
   { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Success, backend confirms after 6 s', value: 'success_delayed' },
 ];
 
+const INTRO: [string, string][] = [
+  ['Seed demo / Reset', 'Load the Rick and Morty demo with 50,000-message histories, or wipe client and server storage.'],
+  ['Network', 'Go offline, lose the next response, add latency, or swap in the buggy server that duplicates retried sends.'],
+  ['Fail next send', 'Make the next send fail with a typed error: rate limited (retryable), blocked, or payment required.'],
+  ['Messages', 'Inject four incoming fan messages into the open thread, as if they arrived while you were away.'],
+  ['Next purchase outcome', 'Choose what the simulated store answers on the paywall: success, cancelled, failed, or delayed confirmation.'],
+];
+
 const DevScreen = observer(function DevScreen() {
   const root = useStores();
   const insets = useSafeAreaInsets();
   const { chatId } = useLocalSearchParams<{ chatId?: string }>();
-  const { connectivity, demo } = root;
+  const { connectivity, demo, settings } = root;
   const [buggy, setBuggy] = useState(container.buggyServer);
   const [outcome, setOutcome] = useState<PurchaseOutcome>(billingConfig.outcome);
   const set = <K extends keyof Faults>(k: K, v: Faults[K]) => runInAction(() => connectivity.setFault(k, v));
@@ -33,6 +42,20 @@ const DevScreen = observer(function DevScreen() {
   return (
     <ModalLayout appIcon title="FanSuite" subtitle="Debug controls · local mock only" onClose={() => router.back()} scroll={false}>
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]} showsVerticalScrollIndicator={false} style={styles.scroll}>
+        {!settings.debugIntroSeen && (
+          <View style={styles.intro} accessibilityRole="summary">
+            <AppText variant="name" color={colors.textHeading}>What this console does</AppText>
+            <AppText variant="caption" color={colors.textSecondary}>Everything here talks to the local mock server only. Nothing leaves the phone.</AppText>
+            {INTRO.map(([title, body]) => (
+              <View key={title} style={styles.introRow}>
+                <AppText variant="caption" color={colors.textPrimary} style={styles.introTitle}>{title}</AppText>
+                <AppText variant="caption" color={colors.textSecondary} style={styles.introBody}>{body}</AppText>
+              </View>
+            ))}
+            <Pill primary label="Got it" onPress={() => runInAction(() => settings.dismissDebugIntro())} />
+          </View>
+        )}
+
         <View style={styles.pills}>
           <Pill icon={Layers} label={demo.seeded ? 'Demo loaded' : 'Seed demo'} disabled={demo.seeded} onPress={() => container.seedDemo()} />
           <Pill icon={RotateCcw} label="Reset to empty" onPress={() => { container.resetAll(); router.back(); }} />
@@ -74,4 +97,8 @@ const styles = StyleSheet.create({
   scroll: { marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg },
   content: { paddingTop: spacing.xs, gap: spacing.xl },
   pills: { flexDirection: 'row', gap: spacing.md },
+  intro: { backgroundColor: colors.primaryTint, borderRadius: radii.card, padding: spacing.lg, gap: spacing.sm },
+  introRow: { flexDirection: 'row', gap: spacing.sm },
+  introTitle: { width: 120, fontFamily: 'Inter_500Medium' },
+  introBody: { flex: 1 },
 });
