@@ -5,9 +5,10 @@ import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassIconButton } from '@/components/GlassIconButton';
-import { CONVERSATIONS, type Conversation } from '@/services/mock/conversations';
+import { type Conversation } from '@/services/mock/conversations';
 import { colors, spacing } from '@/theme/tokens';
 import { ConversationRow } from './ConversationRow';
+import { useConversations } from './useConversations';
 
 const keyExtractor = (c: Conversation) => c.id;
 
@@ -15,6 +16,7 @@ export const openConversation = (id: string) => router.push({ pathname: '/chat/[
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
+  const { items, refreshing, refresh } = useConversations();
   const renderItem = useCallback(
     ({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={openConversation} />,
     [],
@@ -38,7 +40,9 @@ export default function ChatListScreen() {
         }}
       />
       <LegendList
-        data={CONVERSATIONS}
+        data={items}
+        refreshing={refreshing}
+        onRefresh={refresh}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         estimatedItemSize={60}
