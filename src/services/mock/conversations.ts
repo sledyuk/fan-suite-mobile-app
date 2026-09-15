@@ -36,11 +36,11 @@ const profile = (p: Partial<FanProfile> & Pick<FanProfile, 'bio' | 'location'>):
   totalSpent: 320, avgTip: 3.52, avgPpv: 30.12, purchases: 2, ...p,
 });
 
-// Parody fans in our own words. Morty has a PNG avatar; others fall back to initials.
+// Parody fans in our own words. Rick has a PNG avatar; others fall back to initials.
 export const CONVERSATIONS: Conversation[] = [
-  { id: 'morty', fan: fan('Morty Smith', '@morty_s', require('@/assets/images/morty.png')), seed: 42,
-    profile: profile({ bio: 'Fourteen, anxious, surprisingly loyal. Shows up to every stream, asks the questions nobody else dares to. Collects signed prints and loses them.', location: 'Seattle, WA, US', note: 'Send the print again. Registered mail this time.' }),
-    lastMessage: 'Rick, are we streaming tonight?', lastAt: minutesAgo(0.5, NOW), unread: true, online: true },
+  { id: 'rick', fan: fan('Rick Sanchez', '@rickc137', require('@/assets/images/rick.png')), seed: 42,
+    profile: profile({ bio: 'Scientist, grandfather, chaos agent. Subscribed "for research". Sends gifts at 3am with no explanation and expects a reply by 3:05.', location: 'Dimension C-137', note: 'Do not let him near the garage stream setup again.', totalSpent: 1250, avgTip: 25, avgPpv: 60, purchases: 11 }),
+    lastMessage: 'It is not a password. It is a riddle. Also no.', lastAt: minutesAgo(0.5, NOW), unread: true, online: true },
   { id: 'summer', fan: fan('Summer Smith', '@summer_s'), seed: 7,
     profile: profile({ bio: 'Seventeen, runs a small following of her own. Watches for the drama, stays for the science. Tips when the stream goes long.', location: 'Seattle, WA, US', totalSpent: 120, avgTip: 5, purchases: 1 }),
     lastMessage: 'You: the car still needs a wash', lastAt: minutesAgo(12, NOW), unread: false, online: true },

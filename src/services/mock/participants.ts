@@ -10,9 +10,9 @@ export interface Participant {
 /** The signed-in user of this app is the creator. */
 export const ME: Participant = {
   id: 'creator',
-  name: 'Rick Sanchez',
-  handle: '@rickc137',
-  avatar: require('@/assets/images/rick.png'),
+  name: 'Morty Smith',
+  handle: '@morty_s',
+  avatar: require('@/assets/images/morty.png'),
 };
 
 export const fan = (name: string, handle: string, avatar?: number): Participant => ({ id: 'fan', name, handle, avatar });

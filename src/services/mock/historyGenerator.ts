@@ -18,8 +18,8 @@ const GIFT_AMOUNTS = [5, 10, 20, 50];
 export const DEFAULT_END_AT = Date.UTC(2026, 8, 15, 11, 0, 0);
 
 /**
- * Deterministic thread: alternating fan/creator lines taken from SCRIPT,
- * ~10% of fan lines replaced by a gift event. Timestamps advance 30s-10min and are
+ * Deterministic thread: alternating creator/fan lines taken from SCRIPT
+ * (creator speaks first in each pair), ~10% of fan lines replaced by a gift event. Timestamps advance 30s-10min and are
  * shifted so the last message sits at `endAt`. The generator owns seq/ids so a
  * fresh mock server can reseed identically.
  */
@@ -29,8 +29,8 @@ export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT
   let t = 0;
   let pair = SCRIPT[Math.floor(rnd() * SCRIPT.length)];
   for (let i = 0; i < count; i++) {
-    const fanTurn = i % 2 === 0;
-    if (fanTurn) pair = SCRIPT[Math.floor(rnd() * SCRIPT.length)];
+    const fanTurn = i % 2 === 1;
+    if (!fanTurn) pair = SCRIPT[Math.floor(rnd() * SCRIPT.length)];
     t += 30_000 + Math.floor(rnd() * 570_000);
     const isGift = fanTurn && rnd() < 0.1;
     out[i] = {
@@ -40,7 +40,7 @@ export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT
       kind: isGift ? 'gift' : 'text',
       text: isGift
         ? `You sent a $${GIFT_AMOUNTS[Math.floor(rnd() * GIFT_AMOUNTS.length)].toFixed(2)} gift!`
-        : fanTurn ? pair[0] : pair[1],
+        : fanTurn ? pair[1] : pair[0],
       createdAt: t,
     };
   }
