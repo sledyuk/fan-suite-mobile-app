@@ -34,7 +34,8 @@ export const colors = {
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 40 } as const;
 
-export const radii = { sm: 6, md: 8, lg: 10, xl: 16 } as const;
+// iOS 26 favours larger, concentric corners: an inner element's radius = outer radius - padding.
+export const radii = { sm: 6, md: 8, lg: 10, card: 14, xl: 16, sheet: 30 } as const;
 
 export const fonts = {
   regular: 'Inter_400Regular',

@@ -36,7 +36,7 @@ export function InfoCard({ icon, title, editable, right, children, style }: Prop
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.lg, padding: spacing.lg, backgroundColor: colors.bg },
+  card: { borderWidth: 1, borderColor: colors.border, borderRadius: radii.card, padding: spacing.lg, backgroundColor: colors.bg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   body: { flex: 1, gap: spacing.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

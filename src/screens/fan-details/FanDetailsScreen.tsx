@@ -1,10 +1,9 @@
 import { router } from 'expo-router';
-import { Heart, MapPin, RefreshCw, Sparkles, X } from 'lucide-react-native';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Heart, MapPin, RefreshCw, Sparkles } from 'lucide-react-native';
+import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
-import { IconButton } from '@/components/IconButton';
+import { ModalLayout } from '@/components/ModalLayout';
 import type { Conversation } from '@/services/mock/conversations';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { InfoCard } from './InfoCard';
@@ -18,23 +17,15 @@ const money = (n: number) => `$${n.toFixed(2)}`;
 /** Presented as a native iOS sheet (see app/_layout.tsx). Read-only: a creator views a fan's details but cannot edit them. */
 export default function FanDetailsScreen({ conversation }: Props) {
   const { fan, profile, online } = conversation;
-  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <AppText variant="title" color={colors.textHeading} style={styles.headerTitle}>Fan Details</AppText>
-        <IconButton accessibilityLabel="Close" size={32} onPress={() => router.back()} style={styles.close}>
-          <X size={16} color={colors.bg} strokeWidth={2.5} />
-        </IconButton>
-      </View>
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]} showsVerticalScrollIndicator={false}>
+    <ModalLayout title="Fan details" onClose={() => router.back()}>
         <View style={styles.identity}>
           <Avatar source={fan.avatar} name={fan.name} size={120} online={online} />
           <AppText variant="title" color={colors.textHeading} style={styles.name}>{fan.name}</AppText>
           <AppText variant="caption" color={colors.primary}>{fan.handle}</AppText>
         </View>
 
-        <InfoCard title="User BIO">
+        <InfoCard title="User bio">
           <AppText variant="caption" color={colors.textSecondary}>{profile.bio}</AppText>
           <View style={styles.aiPill}>
             <Sparkles size={12} color={colors.primary} />
@@ -91,11 +82,10 @@ export default function FanDetailsScreen({ conversation }: Props) {
 
         <View style={styles.divider} />
 
-        <InfoCard title="Noted">
+        <InfoCard title="Notes">
           <AppText variant="caption" color={profile.note ? colors.textPrimary : colors.textPlaceholder}>{profile.note ?? 'Add a private note'}</AppText>
         </InfoCard>
-      </ScrollView>
-    </View>
+    </ModalLayout>
   );
 }
 
@@ -109,12 +99,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg },
-  headerTitle: { flex: 1, fontSize: 18 },
-  close: { backgroundColor: colors.textSecondary, borderRadius: 16 },
-  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  identity: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.md },
+  identity: { alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.sm },
   name: { marginTop: spacing.sm, fontSize: 18 },
   aiPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.primarySoft, borderRadius: radii.md, paddingHorizontal: spacing.sm, paddingVertical: 3 },
   togglePill: { paddingHorizontal: spacing.md, paddingVertical: 3, borderRadius: 12 },
