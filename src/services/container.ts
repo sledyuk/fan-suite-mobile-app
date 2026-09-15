@@ -9,6 +9,7 @@ import { NaiveChatServer } from '@/services/mock/NaiveChatServer';
 import { clientKV, serverKV } from '@/storage/kvStorage';
 import { RootStore } from '@/stores/RootStore';
 import { startWorkers } from '@/workers/startWorkers';
+import { syncOnce } from '@/workers/syncWorker';
 
 const seedFor = (chatId: string) => CONVERSATIONS.find((c) => c.id === chatId)?.seed ?? 42;
 const seedCount = () => (root.demo.seeded ? 50_000 : 0);
@@ -47,6 +48,7 @@ export const container = {
 
   injectIncoming(chatId: string) {
     server.injectIncoming(chatId, ['Morty. MORTY. Where are you?', 'New stream idea. It involves lasers.', 'Tonight, 8pm. Bring the plumbus.', 'Thanks for the support. Do not tell Jerry.']);
+    if (root.connectivity.online) void syncOnce(root, server);
   },
 
   resetAll() {
