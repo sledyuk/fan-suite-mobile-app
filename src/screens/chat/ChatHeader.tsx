@@ -1,9 +1,8 @@
-import { ArrowLeft, Bug, Star } from 'lucide-react-native';
+import { ArrowLeft, Star } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
-import { GlassIconButton } from '@/components/GlassIconButton';
 import type { Participant } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -11,12 +10,11 @@ interface Props {
   peer: Participant;
   online: boolean;
   onBack?: () => void;
-  onMenu?: () => void;
   onDetails?: () => void;
 }
 
 /** Creator-side header: the fan's identity and a "Full Details" button that opens their profile sheet. */
-export function ChatHeader({ peer, online, onBack, onMenu, onDetails }: Props) {
+export function ChatHeader({ peer, online, onBack, onDetails }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: insets.top }]}>
@@ -26,11 +24,7 @@ export function ChatHeader({ peer, online, onBack, onMenu, onDetails }: Props) {
           <AppText variant="body" color={colors.primary} style={styles.backLabel}>Chats</AppText>
         </Pressable>
         <AppText variant="title" color={colors.textHeading} style={styles.title}>Chat with</AppText>
-        <View style={styles.right}>
-          <GlassIconButton accessibilityLabel="Debug controls" onPress={onMenu}>
-            <Bug size={18} color={colors.textPrimary} strokeWidth={2} />
-          </GlassIconButton>
-        </View>
+        <View style={styles.right} />
       </View>
       <View style={styles.identityRow}>
         <Avatar source={peer.avatar} name={peer.name} size={32} online={online} />

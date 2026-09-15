@@ -6,7 +6,6 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { DebugButton } from '@/components/DebugButton';
 import { EmptyState } from '@/components/EmptyState';
 import { useStores } from '@/hooks/useStores';
 import { PrimaryButton } from '@/components/PrimaryButton';
@@ -24,7 +23,7 @@ const keyExtractor = (t: Transaction) => t.id;
 /** Creator earnings in Schmeckles. Balance card stays put; activity scrolls beneath it. Payout is simulated. */
 const WalletScreen = observer(function WalletScreen() {
   const insets = useSafeAreaInsets();
-  const { wallet, seeded } = useStores().demo;
+  const { wallet } = useStores().demo;
   const [note, setNote] = useState<string | null>(null);
 
   const renderItem = useCallback(({ item: t }: LegendListRenderItemProps<Transaction>) => {
@@ -45,7 +44,7 @@ const WalletScreen = observer(function WalletScreen() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Wallet', headerRight: () => <DebugButton /> }} />
+      <Stack.Screen options={{ title: 'Wallet' }} />
       <View style={styles.top}>
         <View style={styles.balance}>
           <AppText variant="caption" color={colors.primary}>Available balance</AppText>
@@ -67,7 +66,7 @@ const WalletScreen = observer(function WalletScreen() {
         recycleItems
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 88 }}
         style={styles.list}
-        ListEmptyComponent={<EmptyState icon={Wallet} title={seeded ? 'No activity yet' : 'Nothing earned yet'} body="Subscriptions, tips and PPV unlocks from fans land here." seedable={!seeded} />}
+        ListEmptyComponent={<EmptyState icon={Wallet} title="Nothing earned yet" body="Subscriptions, tips and PPV unlocks from fans land here." />}
       />
     </View>
   );

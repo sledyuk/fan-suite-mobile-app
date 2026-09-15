@@ -1,30 +1,27 @@
 import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
-import { Bell, ChevronRight, CircleHelp, Info, RotateCcw, Shield, type LucideIcon } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Bell, Bug, ChevronRight, CircleHelp, Info, Shield, type LucideIcon } from 'lucide-react-native';
+import { observer } from 'mobx-react-lite';
+import { runInAction } from 'mobx';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { DebugButton } from '@/components/DebugButton';
 import { Avatar } from '@/components/Avatar';
 import { useSecretTap } from '@/hooks/useSecretTap';
-import { container } from '@/services/container';
+import { useStores } from '@/hooks/useStores';
 import { ME } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 const version = `${Constants.expoConfig?.version ?? '1.0.0'} · ${__DEV__ ? 'development' : 'release'}`;
 
-export default function MoreScreen() {
+const MoreScreen = observer(function MoreScreen() {
   const insets = useSafeAreaInsets();
+  const { settings } = useStores();
   const secret = useSecretTap(() => router.push('/hire'));
-
-  const reset = () => Alert.alert('Reset to empty account?', 'Clears chats, wallet, plan, outbox and the mock server.', [
-    { text: 'Cancel', style: 'cancel' },
-    { text: 'Reset', style: 'destructive', onPress: () => container.resetAll() },
-  ]);
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'More', headerRight: () => <DebugButton /> }} />
+      <Stack.Screen options={{ title: 'More' }} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 88 }]}>
         <View style={styles.profile}>
           <Avatar source={ME.avatar} name={ME.name} size={56} />
@@ -45,18 +42,21 @@ export default function MoreScreen() {
         </Group>
 
         <Group>
-          <Row icon={RotateCcw} label="Reset to empty account" hint="Chats, wallet, plan, outbox, mock server" tone={colors.error} onPress={reset} last />
+          <Row icon={Bug} label="Developer mode" hint="Floating debug button on every screen" last
+            right={<Switch value={settings.developerMode} onValueChange={(v) => runInAction(() => settings.setDeveloperMode(v))} trackColor={{ true: colors.primary }} />} />
         </Group>
       </ScrollView>
     </View>
   );
-}
+});
+
+export default MoreScreen;
 
 function Group({ children }: { children: React.ReactNode }) {
   return <View style={styles.group}>{children}</View>;
 }
 
-function Row({ icon: Icon, label, hint, onPress, tone = colors.textPrimary, last }: { icon: LucideIcon; label: string; hint: string; onPress?: () => void; tone?: string; last?: boolean }) {
+function Row({ icon: Icon, label, hint, onPress, tone = colors.textPrimary, last, right }: { icon: LucideIcon; label: string; hint: string; onPress?: () => void; tone?: string; last?: boolean; right?: React.ReactNode }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${hint}`} style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && { backgroundColor: colors.bgSubtle }]}>
       <Icon size={20} color={tone} strokeWidth={2} />
@@ -64,7 +64,7 @@ function Row({ icon: Icon, label, hint, onPress, tone = colors.textPrimary, last
         <AppText color={tone}>{label}</AppText>
         <AppText variant="time" color={colors.textMuted}>{hint}</AppText>
       </View>
-      {onPress && tone === colors.textPrimary && <ChevronRight size={18} color={colors.textMuted} />}
+      {right ?? (onPress && tone === colors.textPrimary && <ChevronRight size={18} color={colors.textMuted} />)}
     </Pressable>
   );
 }

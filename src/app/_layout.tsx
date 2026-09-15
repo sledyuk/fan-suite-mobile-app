@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { DebugFab } from '@/components/DebugButton';
 import { StoresProvider } from '@/hooks/useStores';
 
 void SplashScreen.preventAutoHideAsync();
@@ -40,6 +41,7 @@ export default function RootLayout() {
           {/* Debug controls: fault injection + reset. Page sheet like the others (formSheet overlapped the header on iOS 26). */}
           <Stack.Screen name="dev" options={{ presentation: 'modal' }} />
         </Stack>
+        <DebugFab />
         </StoresProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

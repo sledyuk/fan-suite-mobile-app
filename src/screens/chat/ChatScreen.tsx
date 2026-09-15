@@ -29,11 +29,10 @@ const ChatScreen = observer(function ChatScreen({ conversation }: Props) {
   // Back falls through to the list when the thread was opened without history (push notification, reload).
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/chats'));
   const openDetails = () => router.push({ pathname: '/fan/[fanId]', params: { fanId: conversation.id } });
-  const openDev = () => router.push({ pathname: '/dev', params: { chatId: conversation.id } });
 
   return (
     <View style={styles.screen}>
-      <ChatHeader peer={conversation.fan} online={conversation.online} onBack={goBack} onDetails={openDetails} onMenu={openDev} />
+      <ChatHeader peer={conversation.fan} online={conversation.online} onBack={goBack} onDetails={openDetails} />
       <Banner />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill}>
         <MessageList rows={rows} peer={conversation.fan} loadingOlder={loadingOlder} onLoadOlder={loadOlder} onRetry={retry} onDiscard={discard} />

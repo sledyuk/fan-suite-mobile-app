@@ -4,7 +4,6 @@ import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { DebugButton } from '@/components/DebugButton';
 import { EmptyState } from '@/components/EmptyState';
 import { useStores } from '@/hooks/useStores';
 import { formatSchmeckles } from '@/lib/money';
@@ -17,7 +16,7 @@ const DashboardScreen = observer(function DashboardScreen() {
   const online = demo.conversations.filter((c) => c.online).length;
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Dashboard', headerRight: () => <DebugButton /> }} />
+      <Stack.Screen options={{ title: 'Dashboard' }} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
         <PlanCard />
         <View style={styles.tiles}>
@@ -28,7 +27,7 @@ const DashboardScreen = observer(function DashboardScreen() {
           <Tile label="Sending" value={String(outbox.items.filter((i) => i.status !== 'failed').length)} />
           <Tile label="Failed sends" value={String(outbox.items.filter((i) => i.status === 'failed').length)} />
         </View>
-        {!demo.seeded && <EmptyState icon={LayoutDashboard} title="Your studio is empty" body="Earnings and fan activity appear here once fans subscribe. Load the demo to see it populated." seedable />}
+        {!demo.seeded && <EmptyState icon={LayoutDashboard} title="Your studio is empty" body="Earnings and fan activity appear here once fans subscribe." />}
       </ScrollView>
     </View>
   );

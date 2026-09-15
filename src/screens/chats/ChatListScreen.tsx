@@ -5,7 +5,6 @@ import { observer } from 'mobx-react-lite';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DebugButton } from '@/components/DebugButton';
 import { EmptyState } from '@/components/EmptyState';
 import { GlassIconButton } from '@/components/GlassIconButton';
 import { type Conversation } from '@/services/mock/conversations';
@@ -31,12 +30,9 @@ const ChatListScreen = observer(function ChatListScreen() {
         options={{
           title: 'Chats',
           headerRight: () => (
-            <View style={styles.headerButtons}>
-              <DebugButton />
-              <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
-                <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
-              </GlassIconButton>
-            </View>
+            <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
+              <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
+            </GlassIconButton>
           ),
         }}
       />
@@ -50,7 +46,7 @@ const ChatListScreen = observer(function ChatListScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.lg }}
         ListEmptyComponent={
-          <EmptyState icon={MessageCircle} title="No conversations yet" body="When fans message you, their chats show up here. Pull down to refresh." seedable />
+          <EmptyState icon={MessageCircle} title="No conversations yet" body="When fans message you, their chats show up here. Pull down to refresh." />
         }
       />
     </View>
@@ -61,5 +57,4 @@ export default ChatListScreen;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  headerButtons: { flexDirection: 'row', gap: spacing.sm },
 });
