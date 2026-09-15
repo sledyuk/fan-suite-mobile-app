@@ -1,31 +1,76 @@
 import { router, usePathname } from 'expo-router';
 import { Bug } from 'lucide-react-native';
 import { observer } from 'mobx-react-lite';
-import { StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, useWindowDimensions } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStores } from '@/hooks/useStores';
 import { colors } from '@/theme/tokens';
 import { GlassIconButton } from './GlassIconButton';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
+const SIZE = 48;
+const EDGE = 8;
 
 /**
- * Floating debug button, shown on every screen while More → Developer mode is on.
- * Passes the open thread's id to the debug sheet so per-thread actions work.
+ * Floating debug bubble, like Expo's dev-tools button: drag it anywhere, it
+ * snaps to the nearest side edge and stays inside the safe area. Tap opens the
+ * debug sheet with the open thread's id. Shown while More → Developer mode is on.
  */
 export const DebugFab = observer(function DebugFab() {
   const { settings } = useStores();
   const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const reduced = useReducedMotion();
   const path = usePathname();
+
+  const minX = EDGE, maxX = width - SIZE - EDGE;
+  const minY = insets.top + 60, maxY = height - insets.bottom - SIZE - 100;   // clear of headers and the tab bar / composer
+  const x = useSharedValue(maxX);
+  const y = useSharedValue(maxY - 160);
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+
+  useEffect(() => { x.value = Math.min(x.value, maxX); y.value = Math.min(Math.max(y.value, minY), maxY); }, [maxX, minY, maxY, x, y]);
+
+  const open = () => {
+    const chatId = path.startsWith('/chat/') ? path.slice('/chat/'.length) : undefined;
+    router.push({ pathname: '/dev', params: chatId ? { chatId } : {} });
+  };
+
+  const pan = Gesture.Pan()
+    .onStart(() => { startX.value = x.value; startY.value = y.value; })
+    .onUpdate((e) => {
+      x.value = Math.min(Math.max(startX.value + e.translationX, minX), maxX);
+      y.value = Math.min(Math.max(startY.value + e.translationY, minY), maxY);
+    })
+    .onEnd((e) => {
+      // Snap to the nearer side edge, carrying a little of the fling.
+      const projected = x.value + e.velocityX * 0.1;
+      const target = projected + SIZE / 2 < width / 2 ? minX : maxX;
+      x.value = reduced ? target : withSpring(target, { damping: 18, stiffness: 180 });
+      if (!reduced) y.value = withSpring(y.value, { damping: 18, stiffness: 180 });
+    });
+  const tap = Gesture.Tap().onEnd(() => runOnJS(open)());
+  const gesture = Gesture.Exclusive(pan, tap);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { translateY: y.value }] }));
+
   if (!settings.developerMode) return null;
-  const chatId = path.startsWith('/chat/') ? path.slice('/chat/'.length) : undefined;
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 200 }]}>
-      <GlassIconButton size={44} accessibilityLabel="Debug controls" onPress={() => router.push({ pathname: '/dev', params: chatId ? { chatId } : {} })}>
-        <Bug size={20} color={colors.textPrimary} strokeWidth={2} />
-      </GlassIconButton>
-    </View>
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[styles.fab, style]} pointerEvents="box-none">
+        <GlassIconButton size={SIZE} accessibilityLabel="Debug controls. Drag to move." onPress={open} style={styles.shadow}>
+          <Bug size={22} color={colors.textPrimary} strokeWidth={2} />
+        </GlassIconButton>
+      </Animated.View>
+    </GestureDetector>
   );
 });
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', right: 12 },
+  fab: { position: 'absolute', left: 0, top: 0 },
+  shadow: { shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
 });
