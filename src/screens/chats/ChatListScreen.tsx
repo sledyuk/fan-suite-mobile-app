@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack, router } from 'expo-router';
-import { SquarePen } from 'lucide-react-native';
+import { Plus, SlidersHorizontal } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,9 +26,14 @@ export default function ChatListScreen() {
         options={{
           title: 'Chats',
           headerRight: () => (
-            <GlassIconButton accessibilityLabel="New message">
-              <SquarePen size={18} color={colors.textPrimary} strokeWidth={2} />
-            </GlassIconButton>
+            <View style={styles.headerButtons}>
+              <GlassIconButton accessibilityLabel="Filter conversations">
+                <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2} />
+              </GlassIconButton>
+              <GlassIconButton accessibilityLabel="New message">
+                <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
+              </GlassIconButton>
+            </View>
           ),
         }}
       />
@@ -47,4 +52,5 @@ export default function ChatListScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  headerButtons: { flexDirection: 'row', gap: spacing.sm },
 });
