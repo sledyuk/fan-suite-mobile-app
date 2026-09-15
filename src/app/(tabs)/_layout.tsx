@@ -1,8 +1,14 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 
+const PRIMARY_COLOR = "#5863DE";
+
 export default function TabsLayout() {
   return (
-    <NativeTabs disableTransparentOnScrollEdge>
+    <NativeTabs
+      disableTransparentOnScrollEdge
+      tintColor={PRIMARY_COLOR}
+      labelStyle={{ selected: { color: PRIMARY_COLOR } }}
+    >
       <NativeTabs.Trigger name="dashboard/index">
         <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
