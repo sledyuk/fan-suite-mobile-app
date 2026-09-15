@@ -1,20 +1,22 @@
 import { ArrowLeft, MoreVertical, Star } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
-import { Badge } from '@/components/Badge';
 import { IconButton } from '@/components/IconButton';
-import type { Participant } from '@/services/mock/creator';
-import { colors, spacing } from '@/theme/tokens';
+import type { Participant } from '@/services/mock/participants';
+import { colors, radii, spacing } from '@/theme/tokens';
 
 interface Props {
-  creator: Participant;
+  peer: Participant;
+  online: boolean;
   onBack?: () => void;
   onMenu?: () => void;
+  onDetails?: () => void;
 }
 
-export function ChatHeader({ creator, onBack, onMenu }: Props) {
+/** Creator-side header: the fan's identity and a "Full Details" button that opens their profile sheet. */
+export function ChatHeader({ peer, online, onBack, onMenu, onDetails }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: insets.top }]}>
@@ -28,12 +30,20 @@ export function ChatHeader({ creator, onBack, onMenu }: Props) {
         </IconButton>
       </View>
       <View style={styles.identityRow}>
-        <Avatar source={creator.avatar} name={creator.name} size={32} />
+        <Avatar source={peer.avatar} name={peer.name} size={32} online={online} />
         <View style={styles.names}>
-          <AppText variant="name" color={colors.textSecondary}>{creator.name}</AppText>
-          <AppText variant="caption" color={colors.primary}>{creator.handle}</AppText>
+          <AppText variant="name" color={colors.textSecondary}>{peer.name}</AppText>
+          <AppText variant="caption" color={colors.primary}>{peer.handle}</AppText>
         </View>
-        <Badge label="Fan in All Access" icon={<Star size={14} color={colors.primary} fill={colors.primary} />} />
+        <Pressable
+          onPress={onDetails}
+          accessibilityRole="button"
+          accessibilityLabel={`Full details for ${peer.name}`}
+          style={({ pressed }) => [styles.details, pressed && { opacity: 0.7 }]}
+        >
+          <Star size={14} color={colors.primary} fill={colors.primary} />
+          <AppText variant="badge" color={colors.primary}>Full Details</AppText>
+        </Pressable>
       </View>
     </View>
   );
@@ -43,13 +53,7 @@ const styles = StyleSheet.create({
   wrap: { backgroundColor: colors.bg, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   topRow: { height: 48, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm },
   title: { flex: 1, marginLeft: spacing.xs },
-  identityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    paddingTop: spacing.xs,
-    gap: spacing.sm,
-  },
+  identityRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.xs, gap: spacing.sm },
   names: { flex: 1 },
+  details: { height: 32, paddingHorizontal: spacing.md, borderRadius: radii.md, backgroundColor: colors.primarySoft, flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

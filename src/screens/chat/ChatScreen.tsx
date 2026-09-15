@@ -19,11 +19,12 @@ export default function ChatScreen({ conversation }: Props) {
   const { rows, loadOlder, loadingOlder } = useThread(source);
   // Back falls through to the list when the thread was opened without history (push notification, reload).
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/chats'));
+  const openDetails = () => router.push({ pathname: '/fan/[fanId]', params: { fanId: conversation.id } });
 
   return (
     <View style={styles.screen}>
-      <ChatHeader creator={conversation.creator} onBack={goBack} />
-      <MessageList rows={rows} loadingOlder={loadingOlder} onLoadOlder={loadOlder} creator={conversation.creator} />
+      <ChatHeader peer={conversation.fan} online={conversation.online} onBack={goBack} onDetails={openDetails} />
+      <MessageList rows={rows} loadingOlder={loadingOlder} onLoadOlder={loadOlder} peer={conversation.fan} />
     </View>
   );
 }

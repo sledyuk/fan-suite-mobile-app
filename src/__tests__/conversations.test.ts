@@ -5,7 +5,7 @@ describe('conversations fixture', () => {
     const ids = new Set(CONVERSATIONS.map((c) => c.id)); expect(ids.size).toBe(CONVERSATIONS.length);
     const seeds = new Set(CONVERSATIONS.map((c) => c.seed)); expect(seeds.size).toBe(CONVERSATIONS.length);
     for (let i = 1; i < CONVERSATIONS.length; i++) expect(CONVERSATIONS[i - 1].lastAt).toBeGreaterThan(CONVERSATIONS[i].lastAt);
-    expect(findConversation('rick')?.creator.name).toBe('Rick Sanchez');
+    expect(findConversation('morty')?.fan.name).toBe('Morty Smith');
     expect(findConversation('nope')).toBeUndefined();
   });
   it('formats relative time compactly', () => {

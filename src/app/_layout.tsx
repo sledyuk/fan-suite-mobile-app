@@ -29,6 +29,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           {/* Thread lives outside the tab group so the tab bar is not shown over a conversation. */}
           <Stack.Screen name="chat/[chatId]" />
+          {/* Native iOS page sheet (UIKit modal presentation) for the fan profile. */}
+          <Stack.Screen name="fan/[fanId]" options={{ presentation: 'modal' }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

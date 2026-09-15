@@ -16,14 +16,14 @@ export const ConversationRow = memo(function ConversationRow({ item, onPress }: 
     <Pressable
       onPress={() => onPress(item.id)}
       accessibilityRole="button"
-      accessibilityLabel={`Chat with ${item.creator.name}, ${item.unread ? 'unread' : 'read'}, ${relativeTime(item.lastAt)}`}
+      accessibilityLabel={`Chat with ${item.fan.name}, ${item.unread ? 'unread' : 'read'}, ${relativeTime(item.lastAt)}`}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Avatar source={item.creator.avatar} name={item.creator.name} size={40} online={item.online} />
+      <Avatar source={item.fan.avatar} name={item.fan.name} size={40} online={item.online} />
       <View style={styles.body}>
         <View style={styles.nameLine}>
-          <AppText variant="name" numberOfLines={1}>{item.creator.name} </AppText>
-          <AppText variant="name" color={colors.primary} numberOfLines={1} style={styles.handle}>{item.creator.handle}</AppText>
+          <AppText variant="name" numberOfLines={1}>{item.fan.name} </AppText>
+          <AppText variant="name" color={colors.primary} numberOfLines={1} style={styles.handle}>{item.fan.handle}</AppText>
         </View>
         <View style={styles.previewLine}>
           <AppText variant="caption" color={colors.textMuted} numberOfLines={1} style={styles.preview}>{item.lastMessage}</AppText>

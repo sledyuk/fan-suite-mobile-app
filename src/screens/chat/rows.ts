@@ -33,7 +33,7 @@ export function buildRows(messages: ReadonlyArray<ServerMessage>, now = Date.now
       rows.push({ key: `day_${day}`, type: 'day', label: dayLabel(m.createdAt, now) });
       lastDay = day;
     }
-    rows.push({ key: m.id, type: 'msg', msg: m, mine: m.authorId === 'fan' });
+    rows.push({ key: m.id, type: 'msg', msg: m, mine: m.authorId === 'creator' }); // the app user is the creator
   }
   return rows;
 }

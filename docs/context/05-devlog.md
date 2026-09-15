@@ -15,3 +15,9 @@
 - Jest: `@/assets/*` alias had to be mapped before `@/*` (jest-expo only derives the first alias from tsconfig).
 - Typed routes: after renaming the folder, `tsc` fails until Metro regenerates `.expo/types/router.d.ts` — not a code error.
 - Thread route moved to the root Stack (`app/chat/[chatId]`) so it is pushed over the tab group and the tab bar is hidden, matching the mobile mockup. The nested stack inside the tab was removed.
+
+## 2026-09-15 — Step 3: creator-side app, fan details sheet
+- Decision (Bogdan): this is the **creator** app, not the fan app. `ME` is the creator (Rick); conversations are with fans; `mine` = creator messages. Creator mockups now drive the UI (Chats "+" button, "Full Details" header button, emoji quick-bar later).
+- Fan Details opens as a native iOS page sheet via `Stack.Screen options={{ presentation: 'modal' }}` on `app/fan/[fanId]`. Read-only; pencils are affordances only.
+- Fan profile data lives on each conversation fixture (`FanProfile`): bio, location, suite, rebill, presence, buying power, note.
+- Open question parked: the brief's paywall was written from the fan side; on the creator app "paid access" needs a rethink before that step.

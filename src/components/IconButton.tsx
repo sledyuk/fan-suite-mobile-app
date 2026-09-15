@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import { Pressable, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, radii } from '@/theme/tokens';
 
 interface Props extends Omit<PressableProps, 'style'> {
@@ -6,9 +6,10 @@ interface Props extends Omit<PressableProps, 'style'> {
   size?: number;
   filled?: boolean;
   children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function IconButton({ size = 44, filled, children, ...rest }: Props) {
+export function IconButton({ size = 44, filled, children, style, ...rest }: Props) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -18,6 +19,7 @@ export function IconButton({ size = 44, filled, children, ...rest }: Props) {
         styles.base,
         { width: size, height: size, opacity: pressed ? 0.6 : 1 },
         filled && styles.filled,
+        style,
       ]}
     >
       {children}
