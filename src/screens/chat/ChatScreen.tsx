@@ -17,10 +17,12 @@ export default function ChatScreen({ conversation }: Props) {
   // Temporary: in-memory 50k history per conversation seed. Replaced by the mock chat server next step.
   const source = useMemo(() => createInMemoryHistory(generateHistory(50_000, conversation.seed), 150), [conversation.seed]);
   const { rows, loadOlder, loadingOlder } = useThread(source);
+  // Back falls through to the list when the thread was opened without history (push notification, reload).
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace('/chats'));
 
   return (
     <View style={styles.screen}>
-      <ChatHeader creator={conversation.creator} onBack={() => router.back()} />
+      <ChatHeader creator={conversation.creator} onBack={goBack} />
       <MessageList rows={rows} loadingOlder={loadingOlder} onLoadOlder={loadOlder} creator={conversation.creator} />
     </View>
   );

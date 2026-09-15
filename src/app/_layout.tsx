@@ -7,6 +7,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 void SplashScreen.preventAutoHideAsync();
 
+/**
+ * Anchor the root stack on the tab group: a deep link or dev reload straight
+ * into /chat/[id] still mounts the tabs underneath, so Back has somewhere to go.
+ */
+export const unstable_settings = { anchor: '(tabs)' };
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold });
 
