@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
-import { AlertCircle, Clock } from 'lucide-react-native';
+import { AlertCircle, Clock, RotateCcw, Sparkles, Trash2, type LucideIcon } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { formatTime } from '@/lib/time';
 import type { OutboxItem } from '@/services/api/types';
-import { colors, spacing } from '@/theme/tokens';
+import { colors, radii, spacing } from '@/theme/tokens';
 
 interface Props {
   item: OutboxItem;
@@ -36,20 +36,29 @@ export function StatusLine({ item, onRetry, onDiscard }: Props) {
       </View>
       <View style={styles.actions}>
         {err.recoverable ? (
-          <Link label="Retry" onPress={() => onRetry(item.clientId)} />
+          <ActionButton label="Retry" icon={RotateCcw} primary onPress={() => onRetry(item.clientId)} />
         ) : err.code === 'PAYMENT_REQUIRED' ? (
-          <Link label="Subscribe" onPress={() => router.push('/paywall')} />
+          <ActionButton label="Subscribe" icon={Sparkles} primary onPress={() => router.push('/paywall')} />
         ) : null}
-        <Link label="Delete" muted onPress={() => onDiscard(item.clientId)} />
+        <ActionButton label="Delete" icon={Trash2} onPress={() => onDiscard(item.clientId)} />
       </View>
     </View>
   );
 }
 
-function Link({ label, onPress, muted }: { label: string; onPress: () => void; muted?: boolean }) {
+/** 32pt pill with a 44pt hit target: big enough to tap on a failed bubble without hitting the text. */
+function ActionButton({ label, icon: Icon, onPress, primary }: { label: string; icon: LucideIcon; onPress: () => void; primary?: boolean }) {
+  const fg = primary ? colors.primary : colors.textSecondary;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8} style={({ pressed }) => pressed && { opacity: 0.6 }}>
-      <AppText variant="time" color={muted ? colors.textMuted : colors.primary} style={styles.link}>{label}</AppText>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
+      style={({ pressed }) => [styles.action, primary ? styles.actionPrimary : styles.actionNeutral, pressed && { opacity: 0.7 }]}
+    >
+      <Icon size={14} color={fg} strokeWidth={2.25} />
+      <AppText variant="caption" color={fg} style={styles.actionText}>{label}</AppText>
     </Pressable>
   );
 }
@@ -58,6 +67,9 @@ const styles = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
   failed: { gap: spacing.xs },
   reason: { flexShrink: 1 },
-  actions: { flexDirection: 'row', gap: spacing.lg },
-  link: { fontFamily: 'Inter_500Medium' },
+  actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xs },
+  action: { height: 32, paddingHorizontal: spacing.md, borderRadius: radii.md, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  actionPrimary: { backgroundColor: colors.primarySoft },
+  actionNeutral: { backgroundColor: colors.bgSubtle, borderWidth: 1, borderColor: colors.border },
+  actionText: { fontFamily: 'Inter_500Medium' },
 });
