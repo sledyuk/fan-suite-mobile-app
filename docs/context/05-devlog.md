@@ -14,4 +14,4 @@
 - `Avatar` now falls back to initials + name-hashed color when a creator has no PNG.
 - Jest: `@/assets/*` alias had to be mapped before `@/*` (jest-expo only derives the first alias from tsconfig).
 - Typed routes: after renaming the folder, `tsc` fails until Metro regenerates `.expo/types/router.d.ts` — not a code error.
-- Known deviation: native tab bar stays visible on the thread (iOS 26 native tabs minimize it on scroll). Mobile mockup hides it. Revisit if time allows.
+- Thread route moved to the root Stack (`app/chat/[chatId]`) so it is pushed over the tab group and the tab bar is hidden, matching the mobile mockup. The nested stack inside the tab was removed.

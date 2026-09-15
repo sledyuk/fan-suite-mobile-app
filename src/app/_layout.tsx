@@ -19,7 +19,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          {/* Thread lives outside the tab group so the tab bar is not shown over a conversation. */}
+          <Stack.Screen name="chat/[chatId]" />
+        </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

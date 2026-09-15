@@ -21,7 +21,7 @@ export function ChatListScreen() {
     return CONVERSATIONS.filter((c) => c.creator.name.toLowerCase().includes(q) || c.creator.handle.toLowerCase().includes(q));
   }, [query]);
 
-  const open = useCallback((id: string) => router.push({ pathname: '/chats/[chatId]', params: { chatId: id } }), []);
+  const open = useCallback((id: string) => router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }), []);
   const renderItem = useCallback(({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={open} />, [open]);
 
   return (
