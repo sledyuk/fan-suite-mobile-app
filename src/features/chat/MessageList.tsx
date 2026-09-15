@@ -2,18 +2,20 @@ import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/reac
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/theme/tokens';
+import type { Participant } from '@/services/mock/creator';
+import { useCallback } from 'react';
 import { MessageRow } from './MessageRow';
 import type { Row } from './rows';
 
 interface Props {
   rows: Row[];
+  creator: Participant;
   loadingOlder: boolean;
   onLoadOlder: () => void;
 }
 
 const keyExtractor = (r: Row) => r.key;
 const getItemType = (r: Row) => r.type;
-const renderItem = ({ item }: LegendListRenderItemProps<Row>) => <MessageRow row={item} />;
 
 /**
  * Not inverted: LegendList anchors content at the bottom (`alignItemsAtEnd`)
@@ -21,8 +23,12 @@ const renderItem = ({ item }: LegendListRenderItemProps<Row>) => <MessageRow row
  * (`maintainVisibleContentPosition`), which avoids the transform hacks an
  * inverted FlatList needs.
  */
-export function MessageList({ rows, loadingOlder, onLoadOlder }: Props) {
+export function MessageList({ rows, loadingOlder, onLoadOlder, creator }: Props) {
   const insets = useSafeAreaInsets();
+  const renderItem = useCallback(
+    ({ item }: LegendListRenderItemProps<Row>) => <MessageRow row={item} creator={creator} />,
+    [creator],
+  );
   return (
     <LegendList
       data={rows}

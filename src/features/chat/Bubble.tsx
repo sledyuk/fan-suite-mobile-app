@@ -3,13 +3,14 @@ import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import type { ServerMessage } from '@/services/api/types';
-import { CREATOR } from '@/services/mock/creator';
+import type { Participant } from '@/services/mock/creator';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { formatTime } from './rows';
 
 interface Props {
   msg: ServerMessage;
   mine: boolean;
+  creator: Participant;
 }
 
 /**
@@ -17,11 +18,11 @@ interface Props {
  * 84%, incoming bubbles sit after a 32pt avatar with a 13pt gap, timestamp
  * lives inside the bubble bottom-left. Gift messages get a 48pt icon box.
  */
-export function Bubble({ msg, mine }: Props) {
+export function Bubble({ msg, mine, creator }: Props) {
   const bg = mine ? colors.primaryTint : colors.bgIncoming;
   return (
     <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
-      {!mine && <Avatar source={CREATOR.avatar} size={32} />}
+      {!mine && <Avatar source={creator.avatar} name={creator.name} size={32} />}
       <View style={[styles.bubble, { backgroundColor: bg }]}>
         {msg.kind === 'gift' ? (
           <View style={styles.giftRow}>

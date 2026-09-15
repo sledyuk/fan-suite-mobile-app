@@ -16,8 +16,8 @@ export default function TabsLayout() {
           md={{ default: "home", selected: "home" }}
         />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="messages/index">
-        <NativeTabs.Trigger.Label>Messages</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="chats">
+        <NativeTabs.Trigger.Label>Chats</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           sf={{ default: "bubble.left", selected: "bubble.left.fill" }}
           md={{ default: "chat_bubble_outline", selected: "chat_bubble" }}

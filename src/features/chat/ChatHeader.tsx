@@ -5,15 +5,16 @@ import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import { Badge } from '@/components/Badge';
 import { IconButton } from '@/components/IconButton';
-import { CREATOR } from '@/services/mock/creator';
+import type { Participant } from '@/services/mock/creator';
 import { colors, spacing } from '@/theme/tokens';
 
 interface Props {
+  creator: Participant;
   onBack?: () => void;
   onMenu?: () => void;
 }
 
-export function ChatHeader({ onBack, onMenu }: Props) {
+export function ChatHeader({ creator, onBack, onMenu }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.wrap, { paddingTop: insets.top }]}>
@@ -27,10 +28,10 @@ export function ChatHeader({ onBack, onMenu }: Props) {
         </IconButton>
       </View>
       <View style={styles.identityRow}>
-        <Avatar source={CREATOR.avatar} size={32} />
+        <Avatar source={creator.avatar} name={creator.name} size={32} />
         <View style={styles.names}>
-          <AppText variant="name" color={colors.textSecondary}>{CREATOR.name}</AppText>
-          <AppText variant="caption" color={colors.primary}>{CREATOR.handle}</AppText>
+          <AppText variant="name" color={colors.textSecondary}>{creator.name}</AppText>
+          <AppText variant="caption" color={colors.primary}>{creator.handle}</AppText>
         </View>
         <Badge label="Fan in All Access" icon={<Star size={14} color={colors.primary} fill={colors.primary} />} />
       </View>

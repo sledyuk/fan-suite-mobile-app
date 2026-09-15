@@ -4,7 +4,7 @@ export interface Participant {
   id: AuthorId;
   name: string;
   handle: string;
-  avatar: number; // require() asset id
+  avatar?: number; // require() asset id; when absent <Avatar/> renders initials
 }
 
 export const CREATOR: Participant = {

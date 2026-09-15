@@ -1,0 +1,51 @@
+import { memo } from 'react';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { AppText } from '@/components/AppText';
+import { Avatar } from '@/components/Avatar';
+import { relativeTime, type Conversation } from '@/services/mock/conversations';
+import { colors, radii, spacing } from '@/theme/tokens';
+
+interface Props {
+  item: Conversation;
+  onPress: (id: string) => void;
+}
+
+/** 60pt row from the mockup: avatar 40 + presence, name + handle, preview · time, unread dots on the right. */
+export const ConversationRow = memo(function ConversationRow({ item, onPress }: Props) {
+  return (
+    <Pressable
+      onPress={() => onPress(item.id)}
+      accessibilityRole="button"
+      accessibilityLabel={`Chat with ${item.creator.name}, ${item.unread ? 'unread' : 'read'}, ${relativeTime(item.lastAt)}`}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+    >
+      <Avatar source={item.creator.avatar} name={item.creator.name} size={40} online={item.online} />
+      <View style={styles.body}>
+        <View style={styles.nameLine}>
+          <AppText variant="name" numberOfLines={1}>{item.creator.name} </AppText>
+          <AppText variant="name" color={colors.primary} numberOfLines={1} style={styles.handle}>{item.creator.handle}</AppText>
+        </View>
+        <View style={styles.previewLine}>
+          <AppText variant="caption" color={colors.textMuted} numberOfLines={1} style={styles.preview}>{item.lastMessage}</AppText>
+          <AppText variant="time" color={colors.textMuted}> · {relativeTime(item.lastAt)}</AppText>
+        </View>
+      </View>
+      <View style={styles.dots}>
+        <View style={[styles.dot, { backgroundColor: item.unread ? colors.online : colors.divider }]} />
+        <View style={[styles.dot, { backgroundColor: item.online ? colors.online : colors.divider }]} />
+      </View>
+    </Pressable>
+  );
+});
+
+const styles = StyleSheet.create({
+  row: { height: 60, marginHorizontal: spacing.lg, borderRadius: radii.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.sm },
+  pressed: { backgroundColor: colors.primarySoft },
+  body: { flex: 1 },
+  nameLine: { flexDirection: 'row', alignItems: 'center' },
+  handle: { flexShrink: 1 },
+  previewLine: { flexDirection: 'row', alignItems: 'center' },
+  preview: { flexShrink: 1 },
+  dots: { gap: 6, alignItems: 'center' },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+});
