@@ -67,7 +67,7 @@ Current automated result: **10 Jest suites, 37 tests passed**, TypeScript typech
 
 Demo platform: iOS. Tested manually on an iPhone running iOS 27 (exact model: _fill in before sending_) and on the iOS Simulator. Android: run `npm run android`; it was opened briefly but not functionally tested.
 
-Time spent: _fill in before sending_.
+Time spent: about 7 hours, including setup, testing and documentation.
 
 Focused coverage includes:
 
