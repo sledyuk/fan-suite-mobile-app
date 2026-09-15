@@ -7,12 +7,10 @@ import { Avatar } from '@/components/Avatar';
 import { Composer } from '@/components/Composer';
 import { ModalLayout } from '@/components/ModalLayout';
 import { CONVERSATIONS } from '@/services/mock/conversations';
-import { SUITES } from '@/services/mock/suites';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface Props {
   fanIds: string[];
-  suiteIds: string[];
 }
 
 interface Sent { id: string; text: string; at: number }
@@ -22,11 +20,10 @@ interface Sent { id: string; text: string; at: number }
  * thread. For now the send is local; the outbox step turns it into N queued sends
  * with their own client IDs so each gets offline/retry/idempotency for free.
  */
-export default function BroadcastScreen({ fanIds, suiteIds }: Props) {
+export default function BroadcastScreen({ fanIds }: Props) {
   const insets = useSafeAreaInsets();
   const fans = CONVERSATIONS.filter((c) => fanIds.includes(c.id));
-  const suites = SUITES.filter((s) => suiteIds.includes(s.id));
-  const count = fans.length + suites.reduce((n, s) => n + s.fanCount, 0);
+  const count = fans.length;
   const [sent, setSent] = useState<Sent[]>([]);
 
   return (
@@ -39,11 +36,6 @@ export default function BroadcastScreen({ fanIds, suiteIds }: Props) {
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.fill} keyboardVerticalOffset={insets.top + 60}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipsRow}>
-          {suites.map((s) => (
-            <View key={s.id} style={styles.chip}>
-              <View style={styles.body}><AppText variant="name">{s.name}</AppText><AppText variant="caption" color={colors.textMuted}>{s.fanCount.toLocaleString()} fans</AppText></View>
-            </View>
-          ))}
           {fans.map((c) => (
             <View key={c.id} style={styles.chip}>
               <Avatar source={c.fan.avatar} name={c.fan.name} size={40} />

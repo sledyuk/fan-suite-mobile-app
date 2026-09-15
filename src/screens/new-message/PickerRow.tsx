@@ -15,7 +15,7 @@ type Props =
 /** Bordered 64pt card row with a leading checkbox; selected = primary border + tint (Figma). */
 export const PickerRow = memo(function PickerRow(props: Props) {
   const { selected, onToggle } = props;
-  const label = props.kind === 'suite' ? `${props.suite.name}, ${props.suite.fanCount} fans` : `${props.fan.name} ${props.fan.handle}`;
+  const label = props.kind === 'suite' ? `${props.suite.name}, ${props.suite.fanIds.length} fans` : `${props.fan.name} ${props.fan.handle}`;
   return (
     <Pressable
       onPress={onToggle}
@@ -30,7 +30,7 @@ export const PickerRow = memo(function PickerRow(props: Props) {
           <View style={styles.suiteIcon}><Layers size={20} color={colors.textPrimary} strokeWidth={2} /></View>
           <View style={styles.body}>
             <AppText variant="name">{props.suite.name}</AppText>
-            <AppText variant="caption" color={colors.textMuted}>{props.suite.fanCount.toLocaleString()} fans</AppText>
+            <AppText variant="caption" color={colors.textMuted}>{props.suite.fanIds.length} fans</AppText>
           </View>
         </>
       ) : (

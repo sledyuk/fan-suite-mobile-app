@@ -11,44 +11,54 @@ import { SUITES, type Suite } from '@/services/mock/suites';
 import { colors, fonts, radii, spacing } from '@/theme/tokens';
 import { PickerRow } from './PickerRow';
 
-type Item = { kind: 'suite'; key: string; suite: Suite } | { kind: 'fan'; key: string; id: string } | { kind: 'divider'; key: string };
+// Selection is part of the row data so the list repaints on every toggle.
+type Item =
+  | { kind: 'suite'; key: string; suite: Suite; selected: boolean }
+  | { kind: 'fan'; key: string; id: string; selected: boolean }
+  | { kind: 'divider'; key: string; selected: false };
 
 const FANS = CONVERSATIONS.map((c) => ({ id: c.id, fan: c.fan }));
 
 /**
- * Recipient picker. One fan → open that thread. Several fans and/or a suite →
- * "Separate message to (N) users": the same text delivered into each thread.
+ * Recipient picker. Ticking a suite ticks every fan in it. One fan → open that
+ * thread. Several → "Message to (N) users", delivered separately to each.
  */
 export default function NewMessageScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const [fans, setFans] = useState<Set<string>>(new Set());
-  const [suites, setSuites] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
+
+  const toggleFan = useCallback((id: string) => setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; }), []);
+  const toggleSuite = useCallback((suite: Suite) => setSelected((prev) => {
+    const next = new Set(prev); const all = suite.fanIds.every((id) => prev.has(id));
+    for (const id of suite.fanIds) all ? next.delete(id) : next.add(id);
+    return next;
+  }), []);
 
   const items = useMemo<Item[]>(() => {
     const q = query.trim().toLowerCase();
-    const suiteRows = SUITES.filter((s) => !q || s.name.toLowerCase().includes(q)).map<Item>((s) => ({ kind: 'suite', key: `s_${s.id}`, suite: s }));
-    const fanRows = FANS.filter(({ fan }) => !q || fan.name.toLowerCase().includes(q) || fan.handle.toLowerCase().includes(q)).map<Item>(({ id }) => ({ kind: 'fan', key: `f_${id}`, id }));
-    return suiteRows.length && fanRows.length ? [...suiteRows, { kind: 'divider', key: 'div' }, ...fanRows] : [...suiteRows, ...fanRows];
-  }, [query]);
+    const suiteRows = SUITES
+      .filter((s) => s.fanIds.length > 0 && (!q || s.name.toLowerCase().includes(q)))
+      .map<Item>((s) => ({ kind: 'suite', key: `s_${s.id}`, suite: s, selected: s.fanIds.every((id) => selected.has(id)) }));
+    const fanRows = FANS
+      .filter(({ fan }) => !q || fan.name.toLowerCase().includes(q) || fan.handle.toLowerCase().includes(q))
+      .map<Item>(({ id }) => ({ kind: 'fan', key: `f_${id}`, id, selected: selected.has(id) }));
+    return suiteRows.length && fanRows.length ? [...suiteRows, { kind: 'divider', key: 'div', selected: false }, ...fanRows] : [...suiteRows, ...fanRows];
+  }, [query, selected]);
 
-  const toggle = (set: Set<string>, id: string) => { const next = new Set(set); next.has(id) ? next.delete(id) : next.add(id); return next; };
-
-  const recipientCount = fans.size + [...suites].reduce((n, id) => n + (SUITES.find((s) => s.id === id)?.fanCount ?? 0), 0);
-  const single = fans.size === 1 && suites.size === 0;
-  const cta = recipientCount === 0 ? 'Select recipients' : single ? 'Start Chat' : `Message to (${recipientCount}) Users`;
+  const count = selected.size;
+  const cta = count === 0 ? 'Select recipients' : count === 1 ? 'Start Chat' : `Message to (${count}) Users`;
 
   const go = () => {
-    if (single) { const [id] = fans; router.dismissTo('/chats'); router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }); return; }
-    router.push({ pathname: '/new-message/broadcast', params: { fans: [...fans].join(','), suites: [...suites].join(',') } });
+    if (count === 1) { const [id] = selected; router.dismissTo('/chats'); router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }); return; }
+    router.push({ pathname: '/new-message/broadcast', params: { fans: [...selected].join(',') } });
   };
 
   const renderItem = useCallback(({ item }: LegendListRenderItemProps<Item>) => {
     if (item.kind === 'divider') return <View style={styles.divider} />;
-    if (item.kind === 'suite') return <PickerRow kind="suite" suite={item.suite} selected={suites.has(item.suite.id)} onToggle={() => setSuites((s) => toggle(s, item.suite.id))} />;
-    const fan = FANS.find((f) => f.id === item.id)!.fan;
-    return <PickerRow kind="fan" id={item.id} fan={fan} selected={fans.has(item.id)} onToggle={() => setFans((s) => toggle(s, item.id))} />;
-  }, [fans, suites]);
+    if (item.kind === 'suite') return <PickerRow kind="suite" suite={item.suite} selected={item.selected} onToggle={() => toggleSuite(item.suite)} />;
+    return <PickerRow kind="fan" id={item.id} fan={FANS.find((f) => f.id === item.id)!.fan} selected={item.selected} onToggle={() => toggleFan(item.id)} />;
+  }, [toggleFan, toggleSuite]);
 
   return (
     <ModalLayout title="New message" onClose={() => router.back()} scroll={false}>
@@ -80,8 +90,9 @@ export default function NewMessageScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]} pointerEvents="box-none">
         <PrimaryButton
           label={cta}
-          disabled={recipientCount === 0}
+          disabled={count === 0}
           onPress={go}
+          style={styles.cta}
           icon={<ArrowRight size={18} color={colors.bg} strokeWidth={2.25} />}
         />
       </View>
@@ -95,4 +106,6 @@ const styles = StyleSheet.create({
   list: { flex: 1, marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  // iOS 26 capsule with a soft shadow so it reads as floating over the list.
+  cta: { borderRadius: 22, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },
 });
