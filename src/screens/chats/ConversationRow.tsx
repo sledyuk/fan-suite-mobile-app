@@ -48,10 +48,10 @@ export const ConversationRow = memo(function ConversationRow({ item, onPress, ac
   ].filter(Boolean).join(', ');
 
   const leading: SwipeAction[] = [
-    { key: 'pin', label: pinned ? 'Unpin' : 'Pin', icon: pinned ? PinOff : Pin, color: colors.primary, onPress: () => actions.togglePin(item.id) },
+    { key: 'pin', label: pinned ? 'Unpin' : 'Pin', icon: pinned ? PinOff : Pin, color: colors.gift, onPress: () => actions.togglePin(item.id) },
   ];
   const trailing: SwipeAction[] = [
-    { key: 'read', label: unread ? 'Read' : 'Unread', icon: unread ? MailOpen : Mail, color: colors.verified, onPress: () => actions.toggleRead(item.id) },
+    { key: 'read', label: unread ? 'Read' : 'Unread', icon: unread ? MailOpen : Mail, color: colors.primary, onPress: () => actions.toggleRead(item.id) },
     { key: 'mute', label: muted ? 'Unmute' : 'Mute', icon: muted ? Bell : BellOff, color: colors.textSecondary, onPress: () => actions.toggleMute(item.id) },
   ];
 
