@@ -24,6 +24,5 @@ describe('generateHistory', () => {
     const h = generateHistory(50_000);
     expect(Date.now() - t0).toBeLessThan(500);
     expect(h[49_999].seq).toBe(50_000);
-    expect(h.some((m) => m.kind === 'gift')).toBe(true);
   });
 });

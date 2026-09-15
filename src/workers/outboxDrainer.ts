@@ -15,8 +15,13 @@ const BACKOFF_MS = [500, 1500, 4000];
 export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
   const { outbox, chat, connectivity } = root;
   if (!connectivity.online || connectivity.syncing || outbox.sendingOne) return;
-  // First pending item whose chat has no failed item ahead of it.
-  const next = outbox.pending.find((p) => !outbox.items.some((i) => i.chatId === p.chatId && i.status === 'failed' && i.createdAt < p.createdAt));
+  // First pending item whose chat has no failed item ahead of it (queue position = local order).
+  const blocked = new Set<string>();
+  let next: typeof outbox.items[number] | undefined;
+  for (const i of outbox.items) {
+    if (i.status === 'failed') { blocked.add(i.chatId); continue; }
+    if (i.status === 'pending' && !blocked.has(i.chatId)) { next = i; break; }
+  }
   if (!next) return;
 
   runInAction(() => outbox.markSending(next.clientId));

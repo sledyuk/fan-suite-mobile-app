@@ -13,13 +13,12 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-const GIFT_AMOUNTS = [5, 10, 20, 50];
 /** Fixed anchor (not Date.now) so the seeded history never changes between runs. */
 export const DEFAULT_END_AT = Date.UTC(2026, 8, 15, 11, 0, 0);
 
 /**
  * Deterministic thread: alternating creator/fan lines taken from SCRIPT
- * (creator speaks first in each pair), ~10% of fan lines replaced by a gift event. Timestamps advance 30s-10min and are
+ * (creator speaks first in each pair). Timestamps advance 30s-10min and are
  * shifted so the last message sits at `endAt`. The generator owns seq/ids so a
  * fresh mock server can reseed identically.
  */
@@ -32,15 +31,12 @@ export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT
     const fanTurn = i % 2 === 1;
     if (!fanTurn) pair = SCRIPT[Math.floor(rnd() * SCRIPT.length)];
     t += 30_000 + Math.floor(rnd() * 570_000);
-    const isGift = fanTurn && rnd() < 0.1;
     out[i] = {
       id: `h_${i + 1}`,
       seq: i + 1,
       authorId: fanTurn ? 'fan' : 'creator',
-      kind: isGift ? 'gift' : 'text',
-      text: isGift
-        ? `Sent you a $${GIFT_AMOUNTS[Math.floor(rnd() * GIFT_AMOUNTS.length)].toFixed(2)} gift!`   // fan → creator, creator-side wording (mockup)
-        : fanTurn ? pair[1] : pair[0],
+      kind: 'text',
+      text: fanTurn ? pair[1] : pair[0],
       createdAt: t,
     };
   }
