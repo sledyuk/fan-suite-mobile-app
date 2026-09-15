@@ -13,7 +13,7 @@ interface Props {
   conversation: Conversation;
 }
 
-export function ChatScreen({ conversation }: Props) {
+export default function ChatScreen({ conversation }: Props) {
   // Temporary: in-memory 50k history per conversation seed. Replaced by the mock chat server next step.
   const source = useMemo(() => createInMemoryHistory(generateHistory(50_000, conversation.seed), 150), [conversation.seed]);
   const { rows, loadOlder, loadingOlder } = useThread(source);

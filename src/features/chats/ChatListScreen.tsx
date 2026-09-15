@@ -11,7 +11,7 @@ import { SearchBar } from './SearchBar';
 
 const keyExtractor = (c: Conversation) => c.id;
 
-export function ChatListScreen() {
+export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
 
