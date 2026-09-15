@@ -19,8 +19,8 @@ export function startListSync(root: RootStore) {
       for (const c of demo.conversations) {
         const item = byChat.get(c.id);
         if (item) demo.setLast(c.id, { text: item.text, from: 'creator', at: item.createdAt, status: item.status === 'failed' ? 'failed' : 'sending' });
-        else if (c.last.from === 'creator' && c.last.status === 'sending') {
-          const last = chat.thread(c.id).ordered.at(-1);               // just confirmed
+        else if (c.last.from === 'creator' && (c.last.status === 'sending' || c.last.status === 'failed')) {
+          const last = chat.thread(c.id).ordered.at(-1);               // confirmed, or the failed item was deleted
           if (last) demo.setLast(c.id, { text: last.text, from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
         }
       }
@@ -39,10 +39,10 @@ export function startListSync(root: RootStore) {
         if (prev === undefined || t.lastSeq <= prev) continue;           // first load or nothing new
         const fresh = t.ordered.filter((m) => m.seq > prev);
         const last = fresh.at(-1)!;
-        if (outbox.forChat(id).length) continue;                         // outbox projection takes precedence
-        demo.setLast(id, { text: last.text, from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
         const incoming = fresh.filter((m) => m.authorId === 'fan').length;
-        if (incoming && demo.activeChatId !== id) demo.bumpUnread(id, incoming);
+        if (incoming && demo.activeChatId !== id) demo.bumpUnread(id, incoming);   // always, even while we have sends in flight
+        if (outbox.forChat(id).length) continue;                         // preview: outbox projection takes precedence
+        demo.setLast(id, { text: last.text, from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
       }
     }),
   );

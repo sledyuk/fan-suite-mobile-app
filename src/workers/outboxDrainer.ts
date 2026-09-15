@@ -35,7 +35,8 @@ export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
       outbox.markPending(next.clientId);
       const attempts = outbox.items.find((i) => i.clientId === next.clientId)?.attempts ?? 1;
       if (!connectivity.online) return;                                   // wait for reconnect
-      if (attempts >= BACKOFF_MS.length) outbox.markFailed(next.clientId, { code: 'NETWORK', recoverable: true, message: "Couldn't reach the server" });
+      // attempts counts sends so far (1 after the first). Retry up to BACKOFF_MS.length more times, then give up.
+      if (attempts > BACKOFF_MS.length) outbox.markFailed(next.clientId, { code: 'NETWORK', recoverable: true, message: "Couldn't reach the server" });
       else setTimeout(() => void drainOnce(root, api), BACKOFF_MS[attempts - 1]);
     });
     return;

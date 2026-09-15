@@ -93,3 +93,18 @@ test('a sync that returns our own message (by clientId) retires the outbox item 
   expect(s.root.chat.thread(CHAT).ordered.filter((m) => m.text === 'raced')).toHaveLength(1);
   s.stop(); s.root.dispose();
 });
+
+test('network errors retry three times with backoff before the item is marked failed', async () => {
+  jest.useFakeTimers();
+  const s = await boot(new MemoryKV(), new MemoryKV());
+  const sendSpy = jest.spyOn(s.api, 'send');
+  s.root.connectivity.setFault('offline', true);           // server unreachable, but the client still believes it is online
+  s.root.outbox.enqueue(CHAT, 'flaky');
+  await jest.advanceTimersByTimeAsync(0);
+  await jest.advanceTimersByTimeAsync(500); await jest.advanceTimersByTimeAsync(1500); await jest.advanceTimersByTimeAsync(4000);
+  await jest.advanceTimersByTimeAsync(10);
+  expect(sendSpy).toHaveBeenCalledTimes(4);                  // 1 send + 3 retries
+  expect(s.root.outbox.items[0].status).toBe('failed');
+  expect(s.root.outbox.items[0].error?.recoverable).toBe(true);
+  s.stop(); s.root.dispose(); jest.useRealTimers();
+});

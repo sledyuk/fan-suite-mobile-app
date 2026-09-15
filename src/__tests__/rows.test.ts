@@ -31,3 +31,11 @@ test('outbox items follow confirmed messages in local order', () => {
   ], NOW);
   expect(rows.map((r) => r.key)).toEqual([expect.stringMatching(/^day_/), 'm1', 'c2', 'c1']);
 });
+
+test('queued items on an earlier day than the last confirmed message do not reuse a separator key', () => {
+  const rows = buildRows([msg(1, at(0))], [
+    { clientId: 'q1', chatId: 'x', text: 'old failed', createdAt: at(-1), status: 'failed', attempts: 1 },
+  ], NOW);
+  const keys = rows.map((r) => r.key);
+  expect(new Set(keys).size).toBe(keys.length);
+});
