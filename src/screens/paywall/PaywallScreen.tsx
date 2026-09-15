@@ -3,7 +3,7 @@ import { Check, Sparkles } from 'lucide-react-native';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { AppText } from '@/components/AppText';
 import { ModalLayout } from '@/components/ModalLayout';
 import { PrimaryButton } from '@/components/PrimaryButton';

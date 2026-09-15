@@ -1,7 +1,8 @@
 import { RefreshCw, WifiOff } from 'lucide-react-native';
 import { observer } from 'mobx-react-lite';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, useReducedMotion } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { AppText } from '@/components/AppText';
 import { useStores } from '@/hooks/useStores';
 import { colors, spacing } from '@/theme/tokens';

@@ -1,7 +1,7 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { Participant } from '@/services/mock/participants';
 import { colors, spacing } from '@/theme/tokens';
 import { MessageRow } from './MessageRow';

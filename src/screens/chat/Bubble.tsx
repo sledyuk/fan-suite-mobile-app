@@ -1,6 +1,7 @@
 import { Gift } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import { formatTime } from '@/lib/time';

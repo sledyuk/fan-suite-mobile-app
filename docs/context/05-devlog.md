@@ -60,3 +60,4 @@
 - All screens read the store (observer): Chats, Search, New message (suites derived from current fans), Broadcast, Dashboard, Wallet, routes `chat/[id]` and `fan/[id]`, tab badge.
 - `EmptyState` component with a dev-only "Load demo data" button; `DebugButton` (glass bug icon) in every tab header; dev sheet has Seed / Reset to empty at the top and shows account state.
 - More → "Reset to empty account" with confirm alert.
+- Crash found once the Expo Go tip sheet was out of the way: `useReducedMotion` from react-native-reanimated threw "Object is not a function" at runtime in Expo Go (versions match Expo's bundled 4.5.1; export exists). Replaced with our own `hooks/useReducedMotion` on RN `AccessibilityInfo`; Reanimated is still used for entering/exiting animations.
