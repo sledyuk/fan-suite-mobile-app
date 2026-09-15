@@ -23,3 +23,10 @@
 - Open question parked: the brief's paywall was written from the fan side; on the creator app "paid access" needs a rethink before that step.
 - Investigated "modal should show dark card-stack like the Expo docs video": that video is iOS 18. On iOS 26/27 UIKit's page sheet shrinks the parent only slightly and the sheet covers it; the grey strip above the sheet is the *dimmed parent screen*, not a backdrop, so there is no black region to colour. Tried root background black (expo-system-ui) and dark appearance: no effect, reverted. Options: accept platform style, or build a custom card-stack (transparent modal + reanimated scaling of the navigator).
 - Experiment: chat + fan routes in their own nested Stack group. Result: backdrop identical (grey); and deep-linking to the fan sheet from the tabs rendered it as a pushed screen (first route of the nested stack cannot be modal). Reverted to the flat root Stack. Backdrop colour is a native window property → dev-build config plugin later.
+
+## 2026-09-15 — Step 4: iOS 26 navigation (Liquid Glass)
+- Chats tab: nested Stack only for the native header (title + glass "new message" button via `headerRight` + `expo-glass-effect` `GlassView`). Thread still lives in the root stack so the tab bar hides.
+- Search moved to its own tab with `role="search"`: iOS 26 splits it into the round glass button; opening it morphs the tab bar into the native `headerSearchBarOptions` field. Searches name, handle and last message.
+- `NativeTabs minimizeBehavior="onScrollDown"`, unread badge on Chats.
+- `GlassIconButton`: GlassView on iOS 26+, filled circle fallback elsewhere (Android / iOS ≤18).
+- Fallback note: on Android and iOS 18 the header is the plain native bar; still correct, just not glass.
