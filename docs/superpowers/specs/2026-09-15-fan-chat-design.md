@@ -76,3 +76,12 @@ Release build on iOS simulator + device if available. Sequence: open thread, scr
 
 ## 12. Deliverables
 README (bug, decisions, tests, perf, platform notes, time), AI.md, recordings list, upload-resume answer, store policy links section.
+
+## 13. Optional phase (only after sections 1-12 are green; 30-45 min cap)
+Static filler screens from `services/mock/fixtures.ts`, no stores, no tests:
+- Dashboard "My Fan Suites": 3 creator cards (avatar, name, handle, status pill) → tap opens chat; "Recent activity" list (3 rows).
+- Wallet: balance card (primaryTint), "Add funds" → "Simulated billing" toast; 5 transaction rows (subscription, gift, tip, refund in error color).
+- More: profile row; settings list (Notifications, Privacy, Help, About). About: version, build type, "Reset demo data".
+- Easter egg: `useSecretTap(5 taps / 1.5s)` on Dashboard logo text and About version row → formSheet card:
+  avatar, "Next hire: Bogdan Egikov", one-liner, contact sledyuk@gmail.com, button "Email Bogdan" (mailto:sledyuk@gmail.com).
+  Mentioned in README under "For fun". Submission goes to join@fansapi.com (README note only).
