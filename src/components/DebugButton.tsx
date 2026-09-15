@@ -12,13 +12,13 @@ import { GlassIconButton } from './GlassIconButton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const SIZE = 48;
-/** How much of the bubble may hide beyond the screen edge when tucked away. */
-const TUCK = Math.round(SIZE * 0.45);
+/** Gap kept between the bubble and the screen edge. */
+const MARGIN = 8;
 
 /**
  * Floating debug bubble, like Expo's dev-tools button: drag it anywhere, it
- * snaps to the nearest of the four edges and tucks ~45% off-screen there so it
- * never blocks content. Tap opens the
+ * snaps to the nearest of the four edges, staying fully visible with a small
+ * margin inside the safe area. Tap opens the
  * debug sheet with the open thread's id. Shown while More → Developer mode is on.
  */
 export const DebugFab = observer(function DebugFab() {
@@ -28,8 +28,8 @@ export const DebugFab = observer(function DebugFab() {
   const reduced = useReducedMotion();
   const path = usePathname();
 
-  const minX = -TUCK, maxX = width - SIZE + TUCK;                                // may sit partly off-screen on any edge
-  const minY = -TUCK, maxY = height - SIZE + TUCK;
+  const minX = MARGIN, maxX = width - SIZE - MARGIN;
+  const minY = insets.top + MARGIN, maxY = height - insets.bottom - SIZE - MARGIN;
   const x = useSharedValue(maxX);
   const y = useSharedValue(maxY - 220);
   const startX = useSharedValue(0);
@@ -54,10 +54,11 @@ export const DebugFab = observer(function DebugFab() {
       const dl = px - minX, dr = maxX - px, dt = py - minY, db = maxY - py;
       const min = Math.min(dl, dr, dt, db);
       const spring = (v: number) => (reduced ? v : withSpring(v, { damping: 18, stiffness: 180 }));
-      if (min === dl) { x.value = spring(minX); y.value = spring(Math.min(Math.max(py, insets.top), height - insets.bottom - SIZE)); }
-      else if (min === dr) { x.value = spring(maxX); y.value = spring(Math.min(Math.max(py, insets.top), height - insets.bottom - SIZE)); }
-      else if (min === dt) { y.value = spring(minY); x.value = spring(Math.min(Math.max(px, 0), width - SIZE)); }
-      else { y.value = spring(maxY); x.value = spring(Math.min(Math.max(px, 0), width - SIZE)); }
+      const clampX = Math.min(Math.max(px, minX), maxX), clampY = Math.min(Math.max(py, minY), maxY);
+      if (min === dl) { x.value = spring(minX); y.value = spring(clampY); }
+      else if (min === dr) { x.value = spring(maxX); y.value = spring(clampY); }
+      else if (min === dt) { y.value = spring(minY); x.value = spring(clampX); }
+      else { y.value = spring(maxY); x.value = spring(clampX); }
     });
   const tap = Gesture.Tap().onEnd(() => runOnJS(open)());
   const gesture = Gesture.Exclusive(pan, tap);
