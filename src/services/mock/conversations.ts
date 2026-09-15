@@ -1,4 +1,4 @@
-import { fan, type Participant } from './participants';
+import { fan, rmAvatar, type Participant } from './participants';
 
 export interface FanProfile {
   bio: string;
@@ -48,36 +48,36 @@ const profile = (p: Partial<FanProfile> & Pick<FanProfile, 'bio' | 'location'>):
   totalSpent: 320, avgTip: 3.52, avgPpv: 30.12, purchases: 2, ...p,
 });
 
-// Parody fans in our own words. Rick has a PNG avatar; others fall back to initials.
+// Parody fans in our own words. Avatars come from the Rick and Morty API; <Avatar/> falls back to initials while loading or offline.
 export const CONVERSATIONS: Conversation[] = [
-  { id: 'rick', fan: fan('Rick Sanchez', '@rickc137', require('@/assets/images/rick.png')), seed: 42,
+  { id: 'rick', fan: fan('Rick Sanchez', '@rickc137', rmAvatar(1)), seed: 42,
     profile: profile({ bio: 'Scientist, grandfather, chaos agent. Subscribed "for research". Sends gifts at 3am with no explanation and expects a reply by 3:05.', location: 'Dimension C-137', note: 'Do not let him near the garage stream setup again.', totalSpent: 1250, avgTip: 25, avgPpv: 60, purchases: 11 }),
     last: fromFan('It is not a password. It is a riddle. Also no.', 0.5), unreadCount: 2, online: true },
-  { id: 'summer', fan: fan('Summer Smith', '@summer_s'), seed: 7,
+  { id: 'summer', fan: fan('Summer Smith', '@summer_s', rmAvatar(3)), seed: 7,
     profile: profile({ bio: 'Seventeen, runs a small following of her own. Watches for the drama, stays for the science. Tips when the stream goes long.', location: 'Seattle, WA, US', totalSpent: 120, avgTip: 5, purchases: 1 }),
     last: fromMe('the car still needs a wash', 12, 'seen'), unreadCount: 0, online: true },
-  { id: 'birdperson', fan: fan('Bird Person', '@bird_person'), seed: 11,
+  { id: 'birdperson', fan: fan('Birdperson', '@birdperson', rmAvatar(47)), seed: 11,
     profile: profile({ bio: 'Old friend from another planet. Quiet, dependable, sends a gift on every anniversary he remembers, which is all of them.', location: 'Bird World', totalSpent: 980, avgTip: 20, avgPpv: 45, purchases: 9 }),
     last: fromFan('In bird culture this is considered a reply.', 48), unreadCount: 1, online: false },
-  { id: 'squanchy', fan: fan('Squanchy', '@squanch'), seed: 13,
+  { id: 'squanchy', fan: fan('Squanchy', '@squanch', rmAvatar(331)), seed: 13,
     profile: profile({ bio: 'Party animal. Literally. Joins late, leaves early, buys the loudest merch.', location: 'Squanch Planet', rebill: false, totalSpent: 60, avgTip: 2, purchases: 1 }),
     last: fromMe('what does that word even mean', 95, 'failed'), unreadCount: 0, online: false },
-  { id: 'beth', fan: fan('Beth Smith', '@dr_beth'), seed: 17,
+  { id: 'beth', fan: fan('Beth Smith', '@dr_beth', rmAvatar(4)), seed: 17,
     profile: profile({ bio: 'Horse surgeon. Supports the channel out of a complicated mix of pride and guilt. Reads every post, comments on none.', location: 'Seattle, WA, US', totalSpent: 450, avgTip: 10, purchases: 4 }),
     last: fromFan('The horse is fine. The client is not.', 180), unreadCount: 0, online: true },
-  { id: 'jerry', fan: fan('Jerry Smith', '@jerry_official'), seed: 19,
+  { id: 'jerry', fan: fan('Jerry Smith', '@jerry_official', rmAvatar(5)), seed: 19,
     profile: profile({ bio: 'Subscribed by accident, stayed on purpose. Asks about building a website once a week.', location: 'Seattle, WA, US', rebill: false, totalSpent: 9.99, avgTip: 0, avgPpv: 0, purchases: 0 }),
     last: fromMe('no I do not need a website', 400, 'delivered'), unreadCount: 0, online: false },
-  { id: 'unity', fan: fan('Unity', '@one_mind'), seed: 23,
+  { id: 'unity', fan: fan('Unity', '@one_mind', rmAvatar(372)), seed: 23,
     profile: profile({ bio: 'A hive mind with a lot of accounts and one opinion. Top spender three months running.', location: 'Everywhere', totalSpent: 2400, avgTip: 50, avgPpv: 80, purchases: 22 }),
     last: fromFan('We all loved the stream. All of us.', 700), unreadCount: 0, online: true },
-  { id: 'meeseeks', fan: fan('Mr. Meeseeks', '@look_at_me'), seed: 29,
+  { id: 'meeseeks', fan: fan('Mr. Meeseeks', '@look_at_me', rmAvatar(242)), seed: 29,
     profile: profile({ bio: 'Exists to complete one task. Currently: watch every archived stream. Progress: 40%.', location: 'Meeseeks Box', totalSpent: 30, avgTip: 1, purchases: 1 }),
     last: fromFan('Task complete. Please stop asking.', 1500), unreadCount: 0, online: false },
-  { id: 'gearhead', fan: fan('Gearhead', '@gears_r_us'), seed: 31,
+  { id: 'gearhead', fan: fan('Revolio Clockberg Jr.', '@gearhead', rmAvatar(282)), seed: 31,
     profile: profile({ bio: 'Mechanic, self-described. Here for the garage builds. Sends parts instead of tips.', location: 'Gear World', totalSpent: 75, avgTip: 4, purchases: 2 }),
     last: fromMe('thanks for the spare parts', 3000, 'sending'), unreadCount: 0, online: false },
-  { id: 'noob', fan: fan('Noob Noob', '@noob_noob'), seed: 37,
+  { id: 'noob', fan: fan('Noob-Noob', '@noob_noob', rmAvatar(252)), seed: 37,
     profile: profile({ bio: 'Relentlessly positive. Comments "great job" on everything, means it every time.', location: 'Vindicators HQ', totalSpent: 15, avgTip: 1.5, purchases: 1 }),
     last: fromFan('Great job on the merch drop. Really.', 5000), unreadCount: 0, online: false },
 ];
