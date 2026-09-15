@@ -7,7 +7,8 @@ import { AppText } from '@/components/AppText';
 import { ModalLayout } from '@/components/ModalLayout';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { useStores } from '@/hooks/useStores';
-import { container } from '@/services/container';
+import { billingConfig, container } from '@/services/container';
+import type { PurchaseOutcome } from '@/services/api/BillingApi';
 import type { Faults } from '@/services/mock/faults';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -15,11 +16,17 @@ const FAILS: { label: string; value: Faults['failNextSend'] }[] = [
   { label: 'None', value: null }, { label: 'Rate limited', value: 'RATE_LIMITED' }, { label: 'Blocked', value: 'BLOCKED' }, { label: 'Needs payment', value: 'PAYMENT_REQUIRED' },
 ];
 
+const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
+  { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Delayed confirm', value: 'success_delayed' },
+];
+
 /** Local mock controls for the failure scenarios in the brief. Never shipped to users. */
 const DevScreen = observer(function DevScreen() {
   const root = useStores();
   const { chatId } = useLocalSearchParams<{ chatId?: string }>();
-  const { connectivity, outbox } = root;
+  const { connectivity, outbox, billing } = root;
+  const [outcome, setOutcome] = useState<PurchaseOutcome>(billingConfig.outcome);
+  const pick = (v: PurchaseOutcome) => { billingConfig.outcome = v; billingConfig.confirmDelayMs = v === 'success_delayed' ? 6000 : 0; setOutcome(v); };
   const [buggy, setBuggy] = useState(container.buggyServer);
   const set = <K extends keyof Faults>(k: K, v: Faults[K]) => runInAction(() => connectivity.setFault(k, v));
   const counts = { pending: outbox.items.filter((i) => i.status === 'pending').length, sending: outbox.items.filter((i) => i.status === 'sending').length, failed: outbox.items.filter((i) => i.status === 'failed').length };
@@ -54,10 +61,24 @@ const DevScreen = observer(function DevScreen() {
       <PrimaryButton label="Inject 4 incoming from the fan" disabled={!chatId} onPress={() => chatId && container.injectIncoming(chatId)} />
       <AppText variant="time" color={colors.textMuted}>Written straight into the mock server. Visible after the next sync (reconnect).</AppText>
 
+      <AppText variant="caption" color={colors.textMuted}>Next purchase outcome</AppText>
+      <View style={styles.segments}>
+        {OUTCOMES.map((o) => {
+          const on = outcome === o.value;
+          return (
+            <Pressable key={o.value} onPress={() => pick(o.value)} accessibilityRole="button" accessibilityState={{ selected: on }} style={[styles.segment, on && styles.segmentOn]}>
+              <AppText variant="time" color={on ? colors.bg : colors.textPrimary}>{o.label}</AppText>
+            </Pressable>
+          );
+        })}
+      </View>
+      <AppText variant="time" color={colors.textMuted}>Delayed confirm = store says purchased, backend takes 6 s.</AppText>
+
       <View style={styles.status}>
         <AppText variant="caption">Status</AppText>
         <AppText variant="time" color={colors.textMuted}>online {String(connectivity.online)} · syncing {String(connectivity.syncing)}</AppText>
         <AppText variant="time" color={colors.textMuted}>outbox: {counts.pending} pending · {counts.sending} sending · {counts.failed} failed</AppText>
+        <AppText variant="time" color={colors.textMuted}>plan: {billing.entitlement.status}{billing.entitlement.receiptId ? ` · ${billing.entitlement.receiptId.slice(-6)}` : ''}</AppText>
       </View>
 
       <Pressable onPress={() => { container.resetAll(); router.back(); }} accessibilityRole="button" style={({ pressed }) => [styles.reset, pressed && { opacity: 0.7 }]}>

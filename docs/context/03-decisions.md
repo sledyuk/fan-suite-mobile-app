@@ -16,3 +16,5 @@
 | 12 | Runtime | Expo Go for dev + demo; one release build only for perf numbers | Reviewer runs it instantly; Expo Go cannot produce release numbers |
 | 13 | Keyboard | RN KeyboardAvoidingView + safe-area insets | keyboard-controller is native, not in Expo Go |
 | 14 | History content | Rick and Morty parody: creator "Rick Sanchez" @rickc137, fan = Morty. ~60 paraphrased lines cycled with seeded variation | Mockup avatar is already Morty; joke thread shows the app is alive. Own words + generated avatars only |
+| 15 | Paywall model (creator app) | **FanSuite Pro** creator plan, ʂ 40/month (Schmeckles, ≈ $9.99 hint), gates broadcast to many fans + AI bio. Dashboard plan card, paywall sheet, Wallet = earnings in Schmeckles | Brief's paywall was fan-side; on the creator app a SaaS plan keeps every required mechanic (purchase/cancel/fail/restore, delayed backend confirmation, dedupe, no revoke on unrelated failure) with a real feature to gate |
+| 16 | Currency | Schmeckles (ʂ) everywhere; "Simulated billing" labelled on paywall and wallet | Rick and Morty metaverse; makes clear no real money |

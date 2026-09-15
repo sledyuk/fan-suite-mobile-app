@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import WalletScreen from '@/screens/wallet';
 
-export default function WalletScreen() {
-  return <View style={{ flex: 1 }} />;
+export default function WalletRoute() {
+  return <WalletScreen />;
 }

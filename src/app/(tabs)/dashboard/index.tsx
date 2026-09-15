@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import DashboardScreen from '@/screens/dashboard';
 
-export default function DashboardScreen() {
-  return <View style={{ flex: 1 }} />;
+export default function DashboardRoute() {
+  return <DashboardScreen />;
 }

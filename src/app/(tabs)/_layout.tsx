@@ -15,7 +15,7 @@ export default function TabsLayout() {
       tintColor={colors.primary}
       labelStyle={{ selected: { color: colors.primary } }}
     >
-      <NativeTabs.Trigger name="dashboard/index">
+      <NativeTabs.Trigger name="dashboard">
         <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "house", selected: "house.fill" }} md={{ default: "home", selected: "home" }} />
       </NativeTabs.Trigger>
@@ -24,7 +24,7 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Icon sf={{ default: "bubble.left", selected: "bubble.left.fill" }} md={{ default: "chat_bubble_outline", selected: "chat_bubble" }} />
         {unread > 0 && <NativeTabs.Trigger.Badge>{String(unread)}</NativeTabs.Trigger.Badge>}
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="wallet/index">
+      <NativeTabs.Trigger name="wallet">
         <NativeTabs.Trigger.Label>Wallet</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "wallet.pass", selected: "wallet.pass.fill" }} md={{ default: "account_balance_wallet", selected: "account_balance_wallet" }} />
       </NativeTabs.Trigger>

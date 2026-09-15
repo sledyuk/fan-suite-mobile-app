@@ -48,3 +48,9 @@
 - Thread UI: outbox bubbles (dimmed "Sending…", failed with reason + Retry / Subscribe / Delete), Banner (offline amber / syncing), ThreadComposer (emoji quick-bar, attach, 0/400), reduced-motion aware entering animations. `MessageRow` = memo + observer.
 - Dev sheet (`/dev`, form sheet): offline, drop next response, slow network, buggy server, fail-next segmented, inject 4 incoming, status, reset all.
 - Jest: mobx is ESM → added to transformIgnorePatterns allowlist.
+
+## 2026-09-15 — Step 7: payments and paid access
+- Billing layer: `PurchaseService` (MockPurchases: instant outcome from dev sheet, remembers receipt for restore) and `BackendBilling` (MockBackendBilling: idempotent per receipt, configurable delay). `BillingStore`: one flow at a time, `awaiting_confirmation` until backend confirms, dedupe by receipt, unrelated cancel/fail never revoke, awaiting survives restart and re-checks on launch. `delayedConfirmation.test.ts` (3 tests).
+- UI: `/paywall` sheet (product card in ʂ, perks, honest state pills incl. "Check again" after 8 s, Subscribe busy/disabled, Restore, simulated-billing legal), Dashboard `PlanCard` (Free / Confirming… / Pro renews), Wallet (balance, pending payout, simulated payout, transactions with refund in red), broadcast CTA becomes "Upgrade to message (N) users" without Pro. Dev sheet: next purchase outcome (delayed = 6 s).
+- Dashboard and Wallet tabs got native glass headers via nested Stacks (trigger names `dashboard`, `wallet`).
+- Simplified mocks per Bogdan: no artificial store latency; only the backend confirm delay is configurable.

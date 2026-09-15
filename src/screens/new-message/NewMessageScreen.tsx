@@ -1,5 +1,7 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { router } from 'expo-router';
+import { observer } from 'mobx-react-lite';
+import { useStores } from '@/hooks/useStores';
 import { ArrowRight, Search } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
@@ -23,8 +25,9 @@ const FANS = CONVERSATIONS.map((c) => ({ id: c.id, fan: c.fan }));
  * Recipient picker. Ticking a suite ticks every fan in it. One fan → open that
  * thread. Several → "Message to (N) users", delivered separately to each.
  */
-export default function NewMessageScreen() {
+const NewMessageScreen = observer(function NewMessageScreen() {
   const insets = useSafeAreaInsets();
+  const { billing } = useStores();
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 
@@ -47,9 +50,11 @@ export default function NewMessageScreen() {
   }, [query, selected]);
 
   const count = selected.size;
-  const cta = count === 0 ? 'Select recipients' : count === 1 ? 'Start Chat' : `Message to (${count}) Users`;
+  const needsPro = count > 1 && !billing.isActive;   // broadcast is a Pro feature
+  const cta = count === 0 ? 'Select recipients' : count === 1 ? 'Start Chat' : needsPro ? `Upgrade to message (${count}) users` : `Message to (${count}) Users`;
 
   const go = () => {
+    if (needsPro) { router.push('/paywall'); return; }
     if (count === 1) { const [id] = selected; router.dismissTo('/chats'); router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }); return; }
     router.push({ pathname: '/new-message/broadcast', params: { fans: [...selected].join(',') } });
   };
@@ -98,7 +103,9 @@ export default function NewMessageScreen() {
       </View>
     </ModalLayout>
   );
-}
+});
+
+export default NewMessageScreen;
 
 const styles = StyleSheet.create({
   search: { height: 44, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, backgroundColor: colors.bg },
