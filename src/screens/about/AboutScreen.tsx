@@ -20,7 +20,7 @@ const version = `${Constants.expoConfig?.version ?? '1.0.0'} · ${__DEV__ ? 'dev
 export default function AboutScreen() {
   const open = (url: string) => void Linking.openURL(url);
   return (
-    <ModalLayout appIcon title="About" subtitle="FanSuite · React Native test task" onClose={() => router.back()}>
+    <ModalLayout title="About" subtitle="FanSuite · React Native test task" onClose={() => router.back()}>
       <View style={styles.author}>
         <Avatar name={AUTHOR.name} size={72} />
         <AppText variant="title" color={colors.textHeading}>{AUTHOR.name}</AppText>
@@ -33,14 +33,6 @@ export default function AboutScreen() {
         <Row icon={Mail} label={AUTHOR.email} onPress={() => open(`mailto:${AUTHOR.email}?subject=FanSuite%20React%20Native`)} right={<ChevronRight size={18} color={colors.textMuted} />} />
         <Row icon={Sparkles} label="LinkedIn" hint="linkedin.com/in/bogdan-egikov" onPress={() => open(AUTHOR.linkedin)} right={<ChevronRight size={18} color={colors.textMuted} />} />
         <Row icon={Sparkles} label="GitHub" hint="github.com/sledyuk" onPress={() => open(AUTHOR.github)} right={<ChevronRight size={18} color={colors.textMuted} />} last />
-      </Section>
-
-      <Section title="What's in this build">
-        <KV label="Messages" value="offline outbox, stable client IDs, idempotent mock server, restart recovery" />
-        <KV label="Payments" value="simulated store + backend confirmation, restore, delayed confirm" />
-        <KV label="Performance" value="50k-message history, pagination, virtualized list" />
-        <KV label="Navigation" value="iOS 26 native tabs, glass headers, native sheets" />
-        <KV label="Tests" value="Jest: duplicate-send (fails→passes), restart recovery, delayed confirmation" last />
       </Section>
 
       <Section title="App">
