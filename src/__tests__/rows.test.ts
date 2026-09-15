@@ -11,7 +11,7 @@ const msg = (seq: number, createdAt: number, authorId: 'fan' | 'creator' = 'fan'
 
 describe('buildRows', () => {
   it('inserts a separator when the calendar day changes and marks creator messages as mine', () => {
-    const rows = buildRows([msg(1, at(-1)), msg(2, at(-1, 10), 'creator'), msg(3, at(0))], NOW);
+    const rows = buildRows([msg(1, at(-1)), msg(2, at(-1, 10), 'creator'), msg(3, at(0))], [], NOW);
     expect(rows.map((r) => r.type)).toEqual(['day', 'msg', 'msg', 'day', 'msg']);
     expect(rows[0]).toMatchObject({ label: 'Yesterday' });
     expect(rows[3]).toMatchObject({ label: 'Today' });
@@ -22,4 +22,12 @@ describe('buildRows', () => {
   it('labels older days with a short date', () => {
     expect(dayLabel(at(-40), NOW)).toMatch(/Aug/);
   });
+});
+
+test('outbox items follow confirmed messages in local order', () => {
+  const rows = buildRows([msg(1, at(0))], [
+    { clientId: 'c2', chatId: 'x', text: 'b', createdAt: at(0, 11), status: 'pending', attempts: 0 },
+    { clientId: 'c1', chatId: 'x', text: 'a', createdAt: at(0, 10), status: 'failed', attempts: 3 },
+  ], NOW);
+  expect(rows.map((r) => r.key)).toEqual([expect.stringMatching(/^day_/), 'm1', 'c2', 'c1']);
 });

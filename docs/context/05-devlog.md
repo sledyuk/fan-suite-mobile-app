@@ -39,3 +39,12 @@
 - `/new-message` modal with its own Stack: picker (search, FanSuite rows with fan counts, fan rows with verified tick + checkbox, selected = primary border/tint, floating CTA "Start Chat" vs "Message to (N) Users") → `broadcast` ("Message to (N) users", recipient chips, hint, sent bubbles, Composer). Suites expand to their fan count.
 - Single fan → dismiss modal and push the thread. Broadcast send is local for now; the outbox step turns it into N queued sends with their own client IDs.
 - New shared components: `Composer` (draft is local state on purpose), `Checkbox`, `PrimaryButton`; `ModalLayout` gained `onBack` for modal-internal stacks.
+
+## 2026-09-15 — Step 6: outbox, mock server, thread sending
+- Storage: `expo-sqlite/kv-store` behind `KeyValueStorage`; `client:` and `server:` namespaces; `MemoryKV` for tests.
+- `MockChatServer` (idempotent on clientId, persists per thread) + `NaiveChatServer` (the bug). Test `duplicateSend.test.ts`: `test.failing` on the naive server, passing on the fix; raw failure output kept in `docs/evidence/duplicate-send-before-fix.txt`.
+- MobX stores: Connectivity (persisted), Outbox (persisted, sync write before "queued"; `sending` → `pending` on hydrate), ChatStore/ThreadState (upsert by id, seq order, no reorder on repeats). `persistSlice` = hydrate + reaction.
+- Workers: drainer (one at a time, local order, backoff 0.5/1.5/4 s then failed-recoverable; typed errors → failed) and reconnect sync (registered first, sets `syncing` so incoming get lower seq than flushed sends). `restartRecovery.test.ts` covers the brief's 3-pending / 4-incoming / restart scenario and lost-response retry end to end.
+- Thread UI: outbox bubbles (dimmed "Sending…", failed with reason + Retry / Subscribe / Delete), Banner (offline amber / syncing), ThreadComposer (emoji quick-bar, attach, 0/400), reduced-motion aware entering animations. `MessageRow` = memo + observer.
+- Dev sheet (`/dev`, form sheet): offline, drop next response, slow network, buggy server, fail-next segmented, inject 4 incoming, status, reset all.
+- Jest: mobx is ESM → added to transformIgnorePatterns allowlist.

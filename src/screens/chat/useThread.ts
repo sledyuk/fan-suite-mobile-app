@@ -1,43 +1,47 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ServerMessage } from '@/services/api/types';
-import type { HistorySource } from '@/services/mock/historySource';
+import { runInAction } from 'mobx';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useStores } from '@/hooks/useStores';
+import { container } from '@/services/container';
+import { syncOnce } from '@/workers/syncWorker';
 import { buildRows } from './rows';
 
 export const PAGE_SIZE = 50;
 
 /**
- * Owns the loaded window of the thread and paging state. Messages are kept
- * ascending by seq; older pages are prepended. Later this will read from the
- * chat store, but the returned shape (rows / loadOlder / loadingOlder) stays.
+ * Projects one thread from the stores: confirmed messages (server order) plus
+ * this chat's outbox items (local order). Must be called from an `observer`
+ * component so MobX tracks the reads. Paging and the initial load go through
+ * the ChatApi; sending goes through the outbox (see useChatActions).
  */
-export function useThread(source: HistorySource) {
-  const [messages, setMessages] = useState<ServerMessage[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingOlder, setLoadingOlder] = useState(false);
-  const inFlight = useRef(false);
+export function useThread(chatId: string) {
+  const root = useStores();
+  const thread = root.chat.thread(chatId);
+  const api = container.chatApi;
 
   const loadPage = useCallback(async (beforeSeq: number | null) => {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    setLoadingOlder(true);
+    if (thread.loadingOlder) return;
+    runInAction(() => thread.setLoadingOlder(true));
     try {
-      const page = await source.getPage(beforeSeq, PAGE_SIZE);
-      setMessages((prev) => (beforeSeq === null ? page.messages : [...page.messages, ...prev]));
-      setHasMore(page.hasMore);
-    } finally {
-      inFlight.current = false;
-      setLoadingOlder(false);
+      const page = await api.getPage(chatId, beforeSeq, PAGE_SIZE);
+      runInAction(() => thread.setPage(page.messages, page.hasMore));
+    } catch {
+      runInAction(() => thread.setLoadingOlder(false));   // offline: keep what we have
     }
-  }, [source]);
+  }, [api, chatId, thread]);
 
-  useEffect(() => { void loadPage(null); }, [loadPage]);
+  useEffect(() => {
+    if (thread.loaded) { if (root.connectivity.online) void syncOnce(root, api); return; }
+    void loadPage(null);
+  }, [thread, loadPage, root, api]);
 
   const loadOlder = useCallback(() => {
-    if (!hasMore || messages.length === 0) return;
-    void loadPage(messages[0].seq);
-  }, [hasMore, messages, loadPage]);
+    if (!thread.hasMore || thread.oldestLoadedSeq === null) return;
+    void loadPage(thread.oldestLoadedSeq);
+  }, [thread, loadPage]);
 
-  const rows = useMemo(() => buildRows(messages), [messages]);
+  const ordered = thread.ordered;
+  const outbox = root.outbox.forChat(chatId);
+  const rows = useMemo(() => buildRows(ordered, outbox), [ordered, outbox]);
 
-  return { rows, loadOlder, loadingOlder, hasMore };
+  return { rows, loadOlder, loadingOlder: thread.loadingOlder, loaded: thread.loaded };
 }

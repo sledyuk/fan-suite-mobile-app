@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { StoresProvider } from '@/hooks/useStores';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +26,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
+        <StoresProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           {/* Thread lives outside the tab group so the tab bar is not shown over a conversation. */}
@@ -33,7 +35,11 @@ export default function RootLayout() {
           <Stack.Screen name="fan/[fanId]" options={{ presentation: 'modal' }} />
           {/* New message: a modal with its own stack (picker → broadcast). */}
           <Stack.Screen name="new-message" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="paywall" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.7, 0.95], sheetGrabberVisible: true, sheetCornerRadius: 30 }} />
+          {/* Debug controls: fault injection + reset. Native form sheet. */}
+          <Stack.Screen name="dev" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 0.95], sheetGrabberVisible: true, sheetCornerRadius: 30 }} />
         </Stack>
+        </StoresProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
