@@ -4,7 +4,7 @@ import { Linking, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import { KV, Row, Section } from '@/components/GroupedList';
-import { ChevronRight, Mail, Sparkles } from '@/components/icons';
+import { ChevronRight, GitHub, LinkedIn, Mail } from '@/components/icons';
 import { ModalLayout } from '@/components/ModalLayout';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -31,8 +31,8 @@ export default function AboutScreen() {
 
       <Section title="Contact">
         <Row icon={Mail} label={AUTHOR.email} onPress={() => open(`mailto:${AUTHOR.email}?subject=FanSuite%20React%20Native`)} right={<ChevronRight size={18} color={colors.textMuted} />} />
-        <Row icon={Sparkles} label="LinkedIn" hint="linkedin.com/in/bogdan-egikov" onPress={() => open(AUTHOR.linkedin)} right={<ChevronRight size={18} color={colors.textMuted} />} />
-        <Row icon={Sparkles} label="GitHub" hint="github.com/sledyuk" onPress={() => open(AUTHOR.github)} right={<ChevronRight size={18} color={colors.textMuted} />} last />
+        <Row icon={LinkedIn} label="LinkedIn" hint="linkedin.com/in/bogdan-egikov" onPress={() => open(AUTHOR.linkedin)} right={<ChevronRight size={18} color={colors.textMuted} />} />
+        <Row icon={GitHub} label="GitHub" hint="github.com/sledyuk" onPress={() => open(AUTHOR.github)} right={<ChevronRight size={18} color={colors.textMuted} />} last />
       </Section>
 
       <Section title="App">
