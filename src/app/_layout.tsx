@@ -31,6 +31,8 @@ export default function RootLayout() {
           <Stack.Screen name="chat/[chatId]" />
           {/* Native iOS page sheet (UIKit modal presentation) for the fan profile. */}
           <Stack.Screen name="fan/[fanId]" options={{ presentation: 'modal' }} />
+          {/* New message: a modal with its own stack (picker → broadcast). */}
+          <Stack.Screen name="new-message" options={{ presentation: 'modal' }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

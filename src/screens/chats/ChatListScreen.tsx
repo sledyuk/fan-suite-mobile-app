@@ -28,7 +28,7 @@ export default function ChatListScreen() {
         options={{
           title: 'Chats',
           headerRight: () => (
-            <GlassIconButton accessibilityLabel="New message">
+            <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
               <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
             </GlassIconButton>
           ),

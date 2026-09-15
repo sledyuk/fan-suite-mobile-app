@@ -5,6 +5,7 @@ export interface Participant {
   name: string;
   handle: string;
   avatar?: number | string; // require() asset or remote URL; when absent <Avatar/> renders initials
+  verified?: boolean;
 }
 
 /** The signed-in user of this app is the creator. */
@@ -18,4 +19,4 @@ export const ME: Participant = {
   avatar: rmAvatar(2),
 };
 
-export const fan = (name: string, handle: string, avatar?: number | string): Participant => ({ id: 'fan', name, handle, avatar });
+export const fan = (name: string, handle: string, avatar?: number | string, verified = false): Participant => ({ id: 'fan', name, handle, avatar, verified });

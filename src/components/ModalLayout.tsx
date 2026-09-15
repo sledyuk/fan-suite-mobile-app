@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { X } from 'lucide-react-native';
+import { ArrowLeft, X } from 'lucide-react-native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, spacing } from '@/theme/tokens';
@@ -10,6 +10,8 @@ interface Props {
   title: string;
   subtitle?: string;
   onClose: () => void;
+  /** When set, a leading back arrow is shown (modal-internal stack). */
+  onBack?: () => void;
   /** Optional contained icon action rendered left of the close button (iOS 26 toolbar style). */
   action?: React.ReactNode;
   /** Set when the body should not scroll (e.g. it owns its own list). */
@@ -22,7 +24,7 @@ interface Props {
  * left-aligned title (+ optional subtitle), icon-only contained buttons on the
  * right, spacious padded body, and content that fades under the header on scroll.
  */
-export function ModalLayout({ title, subtitle, onClose, action, scroll = true, children }: Props) {
+export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll = true, children }: Props) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
     <ScrollView
@@ -39,6 +41,11 @@ export function ModalLayout({ title, subtitle, onClose, action, scroll = true, c
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
+        {onBack && (
+          <IconButton accessibilityLabel="Back" size={36} onPress={onBack} style={styles.back}>
+            <ArrowLeft size={20} color={colors.textPrimary} strokeWidth={2} />
+          </IconButton>
+        )}
         <View style={styles.titles}>
           <AppText variant="title" color={colors.textHeading} style={styles.title} numberOfLines={1}>{title}</AppText>
           {subtitle !== undefined && <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>{subtitle}</AppText>}
@@ -62,6 +69,7 @@ const styles = StyleSheet.create({
   titles: { flex: 1 },
   title: { fontSize: 20, lineHeight: 26 },
   close: { backgroundColor: colors.textSecondary, borderRadius: 18 },
+  back: { marginLeft: -spacing.sm },
   bodyWrap: { flex: 1 },
   body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.lg },
   fade: { position: 'absolute', top: 0, left: 0, right: 0, height: 16 },
