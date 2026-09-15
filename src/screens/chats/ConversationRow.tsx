@@ -1,4 +1,4 @@
-import { AlertCircle, Bell, BellOff, Check, Clock, MailOpen, Mail, Pin, PinOff } from 'lucide-react-native';
+import { AlertCircle, Bell, BellOff, Check, Clock, MailOpen, Mail, Pin, PinOff } from '@/components/icons';
 import { memo, useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import ReanimatedSwipeable, { type SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';

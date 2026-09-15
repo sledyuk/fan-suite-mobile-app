@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react-native';
+import type { IconComponent } from '@/components/icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, spacing } from '@/theme/tokens';
@@ -6,7 +6,7 @@ import { colors, spacing } from '@/theme/tokens';
 export interface SwipeAction {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   color: string;
   onPress: () => void;
 }

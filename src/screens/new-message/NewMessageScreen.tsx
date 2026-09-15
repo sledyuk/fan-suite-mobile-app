@@ -2,7 +2,7 @@ import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/reac
 import { router } from 'expo-router';
 import { observer } from 'mobx-react-lite';
 import { useStores } from '@/hooks/useStores';
-import { ArrowRight, Search } from 'lucide-react-native';
+import { ArrowRight, Search } from '@/components/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

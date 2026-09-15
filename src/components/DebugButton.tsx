@@ -1,5 +1,5 @@
 import { router, usePathname } from 'expo-router';
-import { Bug } from 'lucide-react-native';
+import { Bug } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { StyleSheet, useWindowDimensions } from 'react-native';

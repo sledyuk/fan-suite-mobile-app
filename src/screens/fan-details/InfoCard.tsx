@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react-native';
+import { Pencil } from '@/components/icons';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, radii, spacing } from '@/theme/tokens';

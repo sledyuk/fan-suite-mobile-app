@@ -1,4 +1,4 @@
-import { BadgeCheck, Layers } from 'lucide-react-native';
+import { BadgeCheck, Layers } from '@/components/icons';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';

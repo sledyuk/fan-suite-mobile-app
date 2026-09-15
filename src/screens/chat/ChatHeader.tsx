@@ -1,4 +1,4 @@
-import { ArrowLeft, Star } from 'lucide-react-native';
+import { ArrowLeft, Star } from '@/components/icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';

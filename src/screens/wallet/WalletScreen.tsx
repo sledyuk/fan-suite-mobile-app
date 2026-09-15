@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack } from 'expo-router';
-import { ArrowDownLeft, ArrowUpRight, Banknote, Gift, Lock, RotateCcw, Wallet } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, Banknote, Gift, Lock, RotateCcw, Wallet, type IconComponent } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -14,7 +14,7 @@ import { CURRENCY_NAME, formatSchmeckles } from '@/lib/money';
 import { TX_LABEL, type Transaction, type TxKind } from '@/services/mock/wallet';
 import { colors, radii, spacing } from '@/theme/tokens';
 
-const ICON: Record<TxKind, React.ComponentType<{ size: number; color: string; strokeWidth: number }>> = {
+const ICON: Record<TxKind, IconComponent> = {
   subscription: ArrowDownLeft, tip: Gift, ppv: Lock, refund: RotateCcw, payout: Banknote,
 };
 const FIXTURE_NOW = Date.UTC(2026, 8, 15, 11, 0, 0);

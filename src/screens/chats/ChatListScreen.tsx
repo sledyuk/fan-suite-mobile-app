@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack, router } from 'expo-router';
-import { MessageCircle, Plus } from 'lucide-react-native';
+import { MessageCircle, Plus } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';

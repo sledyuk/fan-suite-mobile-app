@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react-native';
+import { Send } from '@/components/icons';
 import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { colors, fonts, radii, spacing } from '@/theme/tokens';

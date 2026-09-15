@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Heart, MapPin, RefreshCw, Sparkles } from 'lucide-react-native';
+import { Heart, MapPin, RefreshCw, Sparkles } from '@/components/icons';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';

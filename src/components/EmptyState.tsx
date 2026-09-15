@@ -1,10 +1,10 @@
-import type { LucideIcon } from 'lucide-react-native';
+import type { IconComponent } from '@/components/icons';
 import { StyleSheet, View } from 'react-native';
 import { colors, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 
 interface Props {
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
   body: string;
 }

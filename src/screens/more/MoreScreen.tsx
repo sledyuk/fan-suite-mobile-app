@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import { Stack, router } from 'expo-router';
-import { Bell, Bug, ChevronRight, CircleHelp, Info, Shield, type LucideIcon } from 'lucide-react-native';
+import { Bell, Bug, ChevronRight, CircleHelp, Info, Shield, type IconComponent } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
 import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
@@ -56,7 +56,7 @@ function Group({ children }: { children: React.ReactNode }) {
   return <View style={styles.group}>{children}</View>;
 }
 
-function Row({ icon: Icon, label, hint, onPress, tone = colors.textPrimary, last, right }: { icon: LucideIcon; label: string; hint: string; onPress?: () => void; tone?: string; last?: boolean; right?: React.ReactNode }) {
+function Row({ icon: Icon, label, hint, onPress, tone = colors.textPrimary, last, right }: { icon: IconComponent; label: string; hint: string; onPress?: () => void; tone?: string; last?: boolean; right?: React.ReactNode }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${label}. ${hint}`} style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && { backgroundColor: colors.bgSubtle }]}>
       <Icon size={20} color={tone} strokeWidth={2} />

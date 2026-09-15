@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react-native';
+import { Clock } from '@/components/icons';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import type { OutboxItem } from '@/services/api/types';

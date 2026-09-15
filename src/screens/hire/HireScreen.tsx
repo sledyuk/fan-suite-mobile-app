@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Mail } from 'lucide-react-native';
+import { Mail } from '@/components/icons';
 import { Linking, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';

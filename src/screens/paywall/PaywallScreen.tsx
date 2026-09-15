@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Check, Sparkles } from 'lucide-react-native';
+import { Check, Sparkles } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';

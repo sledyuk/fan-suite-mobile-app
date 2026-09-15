@@ -1,4 +1,4 @@
-import { RefreshCw, WifiOff } from 'lucide-react-native';
+import { RefreshCw, WifiOff } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';

@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { ChevronRight, Sparkles } from 'lucide-react-native';
+import { ChevronRight, Sparkles } from '@/components/icons';
 import { observer } from 'mobx-react-lite';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
