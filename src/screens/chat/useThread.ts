@@ -23,7 +23,7 @@ export function useThread(chatId: string) {
     runInAction(() => thread.setLoadingOlder(true));
     try {
       const page = await api.getPage(chatId, beforeSeq, PAGE_SIZE);
-      runInAction(() => thread.setPage(page.messages, page.hasMore));
+      runInAction(() => root.applyServerMessages(chatId, page.messages, { page: { hasMore: page.hasMore } }));
     } catch {
       runInAction(() => thread.setLoadingOlder(false));   // offline: keep what we have
     }

@@ -13,7 +13,7 @@ const BACKOFF_MS = [500, 1500, 4000];
  * retries or deletes it, so local order is never violated.
  */
 export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
-  const { outbox, chat, connectivity } = root;
+  const { outbox, connectivity } = root;
   if (!connectivity.online || connectivity.syncing || outbox.sendingOne) return;
   // First pending item whose chat has no failed item ahead of it (queue position = local order).
   const blocked = new Set<string>();
@@ -27,7 +27,7 @@ export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
   runInAction(() => outbox.markSending(next.clientId));
   try {
     const msg = await api.send({ chatId: next.chatId, clientId: next.clientId, text: next.text, createdAt: next.createdAt });
-    runInAction(() => { chat.thread(next.chatId).upsert([msg]); outbox.remove(next.clientId); });
+    runInAction(() => { root.applyServerMessages(next.chatId, [msg]); outbox.items.some((i) => i.clientId === next.clientId) && outbox.remove(next.clientId); });
   } catch (e) {
     const err = e instanceof SendError ? e : new SendError('NETWORK', true, 'Network error');
     runInAction(() => {

@@ -11,7 +11,7 @@ export async function syncOnce(root: RootStore, api: ChatApi) {
   try {
     for (const [chatId, t] of root.chat.threads) {
       const msgs = await api.sync(chatId, t.lastSeq);
-      runInAction(() => { if (msgs.length) t.upsert(msgs); });
+      runInAction(() => { if (msgs.length) root.applyServerMessages(chatId, msgs); });
     }
   } catch {
     /* offline again; the drainer stays idle until the next reconnect */

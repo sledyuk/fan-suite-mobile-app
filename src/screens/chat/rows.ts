@@ -22,7 +22,9 @@ export function buildRows(messages: ReadonlyArray<ServerMessage>, outbox: Readon
     separator(m.createdAt);
     rows.push({ key: m.id, type: 'msg', msg: m, mine: m.authorId === 'creator' }); // the app user is the creator
   }
+  const confirmed = new Set(messages.map((m) => m.clientId).filter(Boolean));
   for (const item of outbox) {
+    if (confirmed.has(item.clientId)) continue;   // server already has it; the store reconciles shortly
     separator(item.createdAt);
     rows.push({ key: item.clientId, type: 'outbox', item });
   }

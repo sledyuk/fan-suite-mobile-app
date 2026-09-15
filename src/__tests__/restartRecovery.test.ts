@@ -80,3 +80,16 @@ test('a failed send blocks the messages queued behind it in the same chat (local
   expect(s.root.chat.thread(CHAT).ordered.slice(-2).map((m) => m.text)).toEqual(['first', 'second']);
   s.stop(); s.root.dispose();
 });
+
+test('a sync that returns our own message (by clientId) retires the outbox item — no double bubble', async () => {
+  const s = await boot(new MemoryKV(), new MemoryKV());
+  s.root.connectivity.setOnline(false);                                  // drainer idle
+  const item = s.root.outbox.enqueue(CHAT, 'raced');
+  // The server accepted it but the response was lost; a sync then delivers it before the drainer retries.
+  s.root.connectivity.setFault('offline', false); s.root.connectivity.setFault('dropNextResponse', true);
+  await expect(s.api.send({ chatId: CHAT, clientId: item.clientId, text: 'raced', createdAt: item.createdAt })).rejects.toMatchObject({ code: 'NETWORK' });
+  s.root.applyServerMessages(CHAT, await s.api.sync(CHAT, s.root.chat.thread(CHAT).lastSeq));
+  expect(s.root.outbox.items).toHaveLength(0);
+  expect(s.root.chat.thread(CHAT).ordered.filter((m) => m.text === 'raced')).toHaveLength(1);
+  s.stop(); s.root.dispose();
+});
