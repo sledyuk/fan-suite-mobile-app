@@ -1,9 +1,14 @@
-/** Schmeckles: the demo currency (Rick and Morty). Symbol ʂ, shown before the amount. */
-export const SCHMECKLE = 'ʂ';
+/**
+ * Schmeckles: the demo currency (Rick and Morty). No real glyph exists, so we
+ * use a currency code after the amount, the way CHF or SEK are written.
+ */
+export const CURRENCY_CODE = 'SCH';
+export const CURRENCY_NAME = 'Schmeckles';
 
-export function formatSchmeckles(amount: number, { sign = false }: { sign?: boolean } = {}): string {
-  const abs = Math.abs(amount);
-  const body = Number.isInteger(abs) ? abs.toLocaleString() : abs.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+export function formatSchmeckles(amount: number, { sign = false, code = true }: { sign?: boolean; code?: boolean } = {}): string {
   const prefix = amount < 0 ? '−' : sign ? '+' : '';
-  return `${prefix}${SCHMECKLE} ${body}`;
+  const body = fmt.format(Math.abs(amount));
+  return code ? `${prefix}${body} ${CURRENCY_CODE}` : `${prefix}${body}`;
 }

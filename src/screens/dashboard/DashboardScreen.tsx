@@ -42,7 +42,7 @@ function Tile({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.lg },
+  content: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.lg },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   tile: { flexBasis: '47%', flexGrow: 1, padding: spacing.lg, borderRadius: radii.card, borderWidth: 1, borderColor: colors.border, gap: spacing.xs },
   tileValue: { fontSize: 20, lineHeight: 26, fontVariant: ['tabular-nums'] },

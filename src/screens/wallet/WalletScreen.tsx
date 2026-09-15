@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { listTime } from '@/lib/time';
-import { formatSchmeckles } from '@/lib/money';
+import { CURRENCY_NAME, formatSchmeckles } from '@/lib/money';
 import { TX_LABEL, WALLET, type TxKind } from '@/services/mock/wallet';
 import { colors, radii, spacing } from '@/theme/tokens';
 
@@ -25,7 +25,10 @@ export default function WalletScreen() {
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
         <View style={styles.balance}>
           <AppText variant="caption" color={colors.primary}>Available balance</AppText>
-          <AppText variant="title" color={colors.textHeading} style={styles.amount}>{formatSchmeckles(WALLET.balance)}</AppText>
+          <View style={styles.amountRow}>
+            <AppText variant="title" color={colors.textHeading} style={styles.amount}>{formatSchmeckles(WALLET.balance, { code: false })}</AppText>
+            <AppText variant="name" color={colors.textMuted}>{CURRENCY_NAME}</AppText>
+          </View>
           <AppText variant="time" color={colors.textMuted}>{formatSchmeckles(WALLET.pendingPayout)} pending payout · Simulated billing</AppText>
           <PrimaryButton label="Request payout" icon={<ArrowUpRight size={18} color={colors.bg} strokeWidth={2.25} />} onPress={() => setNote('Payout requested. In the real app this creates a transfer via the payout provider.')} style={styles.payout} />
           {note && <AppText variant="time" color={colors.successText}>{note}</AppText>}
@@ -56,11 +59,12 @@ export default function WalletScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.md },
+  content: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.md },
   balance: { backgroundColor: colors.primaryTint, borderRadius: radii.card, padding: spacing.lg, gap: spacing.xs },
+  amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm },
   amount: { fontSize: 32, lineHeight: 40, fontVariant: ['tabular-nums'] },
   payout: { marginTop: spacing.md, alignSelf: 'flex-start' },
-  section: { marginTop: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.6, fontSize: 12 },
+  section: { marginTop: spacing.lg, textTransform: 'uppercase', letterSpacing: 0.6, fontSize: 12 },
   list: { gap: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
   icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
