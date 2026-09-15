@@ -56,6 +56,13 @@ export const SlidersHorizontal: IconComponent = wrap(Iconsax.Setting4);
 export const SquarePen: IconComponent = wrap(Iconsax.Edit2);
 export const LayoutDashboard: IconComponent = wrap(Iconsax.Element3);
 
+export const Slash: IconComponent = wrap(Iconsax.Slash);
+export const MessageNotif: IconComponent = wrap(Iconsax.MessageNotif);
+export const Cpu: IconComponent = wrap(Iconsax.Cpu);
+export const Timer: IconComponent = wrap(Iconsax.TimerStart);
+export const Wifi: IconComponent = wrap(Iconsax.Wifi);
+export const Lamp: IconComponent = wrap(Iconsax.Lamp);
+
 /** Plain check mark (checkbox, delivered). Iconsax only ships ticks inside shapes. */
 export const Check: IconComponent = ({ size = 20, color = '#18181B', strokeWidth = 2 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M20 6 9 17l-5-5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></Svg>

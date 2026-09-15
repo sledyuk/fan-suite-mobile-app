@@ -12,11 +12,13 @@ import { GlassIconButton } from './GlassIconButton';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 const SIZE = 48;
-const EDGE = 8;
+/** How much of the bubble may hide beyond the screen edge when tucked away. */
+const TUCK = Math.round(SIZE * 0.45);
 
 /**
  * Floating debug bubble, like Expo's dev-tools button: drag it anywhere, it
- * snaps to the nearest side edge and stays inside the safe area. Tap opens the
+ * snaps to the nearest side edge and can be tucked ~45% off-screen so it
+ * never blocks content. Tap opens the
  * debug sheet with the open thread's id. Shown while More → Developer mode is on.
  */
 export const DebugFab = observer(function DebugFab() {
@@ -26,10 +28,10 @@ export const DebugFab = observer(function DebugFab() {
   const reduced = useReducedMotion();
   const path = usePathname();
 
-  const minX = EDGE, maxX = width - SIZE - EDGE;
-  const minY = insets.top + 60, maxY = height - insets.bottom - SIZE - 100;   // clear of headers and the tab bar / composer
+  const minX = -TUCK, maxX = width - SIZE + TUCK;                                // may sit partly off-screen
+  const minY = insets.top + 8, maxY = height - insets.bottom - SIZE - 8;
   const x = useSharedValue(maxX);
-  const y = useSharedValue(maxY - 160);
+  const y = useSharedValue(maxY - 220);
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
 

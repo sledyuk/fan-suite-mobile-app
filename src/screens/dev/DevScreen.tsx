@@ -1,11 +1,12 @@
+import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import { observer } from 'mobx-react-lite';
 import { runInAction } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Switch, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { ModalLayout } from '@/components/ModalLayout';
-import { PrimaryButton } from '@/components/PrimaryButton';
+import { Check, Clock, Cpu, Lamp, Layers, MessageNotif, RotateCcw, Slash, Wallet, WifiOff, X, type IconComponent } from '@/components/icons';
 import { useStores } from '@/hooks/useStores';
 import { billingConfig, container } from '@/services/container';
 import type { PurchaseOutcome } from '@/services/api/BillingApi';
@@ -13,120 +14,146 @@ import type { Faults } from '@/services/mock/faults';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 const FAILS: { label: string; value: Faults['failNextSend'] }[] = [
-  { label: 'None', value: null }, { label: 'Rate limited', value: 'RATE_LIMITED' }, { label: 'Blocked', value: 'BLOCKED' }, { label: 'Needs payment', value: 'PAYMENT_REQUIRED' },
+  { label: 'None', value: null }, { label: 'Rate limited (recoverable)', value: 'RATE_LIMITED' }, { label: 'Blocked', value: 'BLOCKED' }, { label: 'Needs payment', value: 'PAYMENT_REQUIRED' },
 ];
-
 const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
-  { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Delayed confirm', value: 'success_delayed' },
+  { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Success, backend confirms after 6 s', value: 'success_delayed' },
 ];
+const GROUP_BG = '#F2F2F7';
 
-/** Local mock controls for the failure scenarios in the brief. Never shipped to users. */
+/** Debug sheet in the language of Expo's dev menu: header, pill actions, grouped inset lists, tip, status. Local mock only. */
 const DevScreen = observer(function DevScreen() {
   const root = useStores();
+  const insets = useSafeAreaInsets();
   const { chatId } = useLocalSearchParams<{ chatId?: string }>();
   const { connectivity, outbox, billing, demo } = root;
-  const [outcome, setOutcome] = useState<PurchaseOutcome>(billingConfig.outcome);
-  const pick = (v: PurchaseOutcome) => { billingConfig.outcome = v; billingConfig.confirmDelayMs = v === 'success_delayed' ? 6000 : 0; setOutcome(v); };
   const [buggy, setBuggy] = useState(container.buggyServer);
+  const [outcome, setOutcome] = useState<PurchaseOutcome>(billingConfig.outcome);
   const set = <K extends keyof Faults>(k: K, v: Faults[K]) => runInAction(() => connectivity.setFault(k, v));
+  const pick = (v: PurchaseOutcome) => { billingConfig.outcome = v; billingConfig.confirmDelayMs = v === 'success_delayed' ? 6000 : 0; setOutcome(v); };
   const counts = { pending: outbox.items.filter((i) => i.status === 'pending').length, sending: outbox.items.filter((i) => i.status === 'sending').length, failed: outbox.items.filter((i) => i.status === 'failed').length };
-  const convs = demo.conversations;
-  const stats = {
-    conversations: convs.length,
-    unreadChats: convs.filter((c) => c.unreadCount > 0).length,
-    unreadMessages: demo.unreadTotal,
-    online: convs.filter((c) => c.online).length,
-    mineLast: convs.filter((c) => c.last.from === 'creator').length,
-    seen: convs.filter((c) => c.last.from === 'creator' && c.last.status === 'seen').length,
-  };
   const thread = chatId ? root.chat.thread(chatId) : null;
 
   return (
-    <ModalLayout title="Debug controls" subtitle="Local mock only" onClose={() => router.back()}>
-      <View style={styles.seedRow}>
-        <PrimaryButton label={demo.seeded ? 'Demo data loaded' : 'Seed demo data'} disabled={demo.seeded} onPress={() => container.seedDemo()} style={styles.seedBtn} />
-        <Pressable onPress={() => { container.resetAll(); router.back(); }} accessibilityRole="button" style={({ pressed }) => [styles.clearBtn, pressed && { opacity: 0.7 }]}>
-          <AppText variant="badge" color={colors.error}>Reset to empty</AppText>
+    <View style={styles.screen}>
+      <View style={styles.header}>
+        <Image source={require('@/assets/images/icon.png')} style={styles.appIcon} />
+        <View style={styles.titles}>
+          <AppText variant="title" color={colors.textHeading}>FanSuite</AppText>
+          <AppText variant="caption" color={colors.textMuted}>Debug controls · local mock only</AppText>
+        </View>
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close" style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}>
+          <X size={18} color={colors.textMuted} strokeWidth={2.5} />
         </Pressable>
       </View>
-      <AppText variant="time" color={colors.textMuted}>Empty = fresh account (no chats, zero balance, free plan). Seed = demo conversations, wallet and 50k-message threads.</AppText>
-      <Row label="Offline" hint="Sends queue and show “Sending…”">
-        <Switch value={!connectivity.online} onValueChange={(v) => runInAction(() => connectivity.setOnline(!v))} trackColor={{ true: colors.primary }} />
-      </Row>
-      <Row label="Drop next response" hint="Server accepts, client sees a network error">
-        <Switch value={connectivity.faults.dropNextResponse} onValueChange={(v) => set('dropNextResponse', v)} trackColor={{ true: colors.primary }} />
-      </Row>
-      <Row label="Slow network" hint="800 ms latency">
-        <Switch value={connectivity.faults.latencyMs > 0} onValueChange={(v) => set('latencyMs', v ? 800 : 0)} trackColor={{ true: colors.primary }} />
-      </Row>
-      <Row label="Buggy server" hint="No idempotency key → duplicates on retry">
-        <Switch value={buggy} onValueChange={(v) => { container.useBuggyServer(v); setBuggy(v); }} trackColor={{ true: colors.error }} />
-      </Row>
 
-      <AppText variant="caption" color={colors.textMuted}>Fail next send</AppText>
-      <View style={styles.segments}>
-        {FAILS.map((f) => {
-          const on = connectivity.faults.failNextSend === f.value;
-          return (
-            <Pressable key={f.label} onPress={() => set('failNextSend', f.value)} accessibilityRole="button" accessibilityState={{ selected: on }} style={[styles.segment, on && styles.segmentOn]}>
-              <AppText variant="time" color={on ? colors.bg : colors.textPrimary}>{f.label}</AppText>
-            </Pressable>
-          );
-        })}
-      </View>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.pills}>
+          <Pill icon={Layers} label={demo.seeded ? 'Demo loaded' : 'Seed demo'} disabled={demo.seeded} onPress={() => container.seedDemo()} />
+          <Pill icon={RotateCcw} label="Reset to empty" onPress={() => { container.resetAll(); router.back(); }} />
+        </View>
 
-      <PrimaryButton label="Inject 4 incoming from the fan" disabled={!chatId} onPress={() => chatId && container.injectIncoming(chatId)} />
-      <AppText variant="time" color={colors.textMuted}>Written straight into the mock server. Visible after the next sync (reconnect).</AppText>
+        <Section title="Network">
+          <Row icon={WifiOff} label="Offline" right={<Switch value={!connectivity.online} onValueChange={(v) => runInAction(() => connectivity.setOnline(!v))} />} />
+          <Row icon={Slash} label="Drop next response" hint="Server accepts, client sees a network error" right={<Switch value={connectivity.faults.dropNextResponse} onValueChange={(v) => set('dropNextResponse', v)} />} />
+          <Row icon={Clock} label="Slow network" hint="800 ms latency" right={<Switch value={connectivity.faults.latencyMs > 0} onValueChange={(v) => set('latencyMs', v ? 800 : 0)} />} />
+          <Row icon={Cpu} label="Buggy server" hint="No idempotency key → duplicates on retry" right={<Switch value={buggy} onValueChange={(v) => { container.useBuggyServer(v); setBuggy(v); }} trackColor={{ true: colors.error }} />} last />
+        </Section>
 
-      <AppText variant="caption" color={colors.textMuted}>Next purchase outcome</AppText>
-      <View style={styles.segments}>
-        {OUTCOMES.map((o) => {
-          const on = outcome === o.value;
-          return (
-            <Pressable key={o.value} onPress={() => pick(o.value)} accessibilityRole="button" accessibilityState={{ selected: on }} style={[styles.segment, on && styles.segmentOn]}>
-              <AppText variant="time" color={on ? colors.bg : colors.textPrimary}>{o.label}</AppText>
-            </Pressable>
-          );
-        })}
-      </View>
-      <AppText variant="time" color={colors.textMuted}>Delayed confirm = store says purchased, backend takes 6 s.</AppText>
+        <Section title="Fail next send">
+          {FAILS.map((f, i) => (
+            <Row key={f.label} label={f.label} onPress={() => set('failNextSend', f.value)} right={connectivity.faults.failNextSend === f.value ? <Check size={18} color={colors.primary} strokeWidth={2.5} /> : null} last={i === FAILS.length - 1} />
+          ))}
+        </Section>
 
-      <View style={styles.status}>
-        <AppText variant="caption">Status</AppText>
-        <AppText variant="time" color={colors.textMuted}>account {demo.seeded ? 'demo' : 'empty'} · online {String(connectivity.online)} · syncing {String(connectivity.syncing)}</AppText>
-        <AppText variant="time" color={colors.textMuted}>outbox: {counts.pending} pending · {counts.sending} sending · {counts.failed} failed</AppText>
-        <AppText variant="time" color={colors.textMuted}>plan: {billing.entitlement.status}{billing.entitlement.receiptId ? ` · ${billing.entitlement.receiptId.slice(-6)}` : ''}</AppText>
-        <AppText variant="time" color={colors.textMuted}>chats: {stats.conversations} · unread chats {stats.unreadChats} · unread messages {stats.unreadMessages} · online {stats.online}</AppText>
-        <AppText variant="time" color={colors.textMuted}>last message mine: {stats.mineLast} · seen by fan {stats.seen}</AppText>
-        {thread && <AppText variant="time" color={colors.textMuted}>this thread: {thread.orderedIds.length} loaded · lastSeq {thread.lastSeq} · server {container.server.messageCount(chatId!)} · outbox {outbox.forChat(chatId!).length}</AppText>}
-      </View>
+        <Section title="Messages">
+          <Row icon={MessageNotif} label="Inject 4 incoming from the fan" hint={chatId ? 'Written to the mock server; shows after the next sync' : 'Open a thread first'} disabled={!chatId} onPress={() => chatId && container.injectIncoming(chatId)} last />
+        </Section>
 
-    </ModalLayout>
+        <Section title="Next purchase outcome">
+          {OUTCOMES.map((o, i) => (
+            <Row key={o.value} icon={i === 0 ? Wallet : undefined} label={o.label} onPress={() => pick(o.value)} right={outcome === o.value ? <Check size={18} color={colors.primary} strokeWidth={2.5} /> : null} last={i === OUTCOMES.length - 1} />
+          ))}
+        </Section>
+
+        <View style={styles.tip}>
+          <View style={styles.tipHead}><Lamp size={16} color={colors.verified} /><AppText variant="name" color={colors.verified}>Tip</AppText></View>
+          <AppText variant="caption" color={colors.textSecondary}>Offline on → send three → offline off: incoming messages sync first, then the queue drains in order.</AppText>
+        </View>
+
+        <Section title="Status">
+          <KV label="Account" value={demo.seeded ? 'demo' : 'empty'} />
+          <KV label="Connection" value={connectivity.syncing ? 'syncing' : connectivity.online ? 'online' : 'offline'} />
+          <KV label="Outbox" value={`${counts.pending} pending · ${counts.sending} sending · ${counts.failed} failed`} />
+          <KV label="Plan" value={billing.entitlement.status.replace('_', ' ')} />
+          <KV label="Unread" value={`${demo.conversations.filter((c) => c.unreadCount > 0).length} chats · ${demo.unreadTotal} messages`} />
+          {thread ? <KV label="This thread" value={`${thread.orderedIds.length} loaded · seq ${thread.lastSeq} · server ${container.server.messageCount(chatId!)}`} last /> : <KV label="Fans online" value={String(demo.conversations.filter((c) => c.online).length)} last />}
+        </Section>
+      </ScrollView>
+    </View>
   );
 });
 
 export default DevScreen;
 
-function Row({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
+function Pill({ icon: Icon, label, onPress, disabled }: { icon: IconComponent; label: string; onPress: () => void; disabled?: boolean }) {
   return (
-    <View style={styles.row}>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }} style={({ pressed }) => [styles.pill, pressed && { opacity: 0.7 }, disabled && { opacity: 0.45 }]}>
+      <Icon size={20} color={colors.textPrimary} />
+      <AppText variant="body" color={colors.textPrimary} style={styles.pillLabel}>{label}</AppText>
+    </Pressable>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <AppText variant="time" color={colors.textMuted} style={styles.sectionTitle}>{title.toUpperCase()}</AppText>
+      <View style={styles.group}>{children}</View>
+    </View>
+  );
+}
+
+function Row({ icon: Icon, label, hint, right, onPress, disabled, last }: { icon?: IconComponent; label: string; hint?: string; right?: React.ReactNode; onPress?: () => void; disabled?: boolean; last?: boolean }) {
+  return (
+    <Pressable onPress={onPress} disabled={!onPress || disabled} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={hint ? `${label}. ${hint}` : label} style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && onPress && styles.rowPressed, disabled && { opacity: 0.45 }]}>
+      {Icon && <Icon size={20} color={colors.textSecondary} />}
       <View style={styles.rowText}>
         <AppText>{label}</AppText>
-        <AppText variant="time" color={colors.textMuted}>{hint}</AppText>
+        {hint && <AppText variant="time" color={colors.textMuted}>{hint}</AppText>}
       </View>
-      {children}
+      {right}
+    </Pressable>
+  );
+}
+
+function KV({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <View style={[styles.row, !last && styles.rowBorder]}>
+      <AppText style={styles.rowText}>{label}</AppText>
+      <AppText variant="caption" color={colors.textSecondary} style={styles.kv}>{value}</AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  rowText: { flex: 1, gap: 2 },
-  segments: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  segment: { paddingHorizontal: spacing.md, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-  segmentOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  status: { padding: spacing.md, borderRadius: radii.card, backgroundColor: colors.bgPanel, gap: 2 },
-  seedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  seedBtn: { flex: 1 },
-  clearBtn: { height: 44, paddingHorizontal: spacing.md, borderRadius: radii.lg, backgroundColor: colors.errorSoft, alignItems: 'center', justifyContent: 'center' },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm },
+  appIcon: { width: 44, height: 44, borderRadius: 22 },
+  titles: { flex: 1 },
+  close: { width: 40, height: 40, borderRadius: 20, backgroundColor: GROUP_BG, alignItems: 'center', justifyContent: 'center' },
+  content: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xl },
+  pills: { flexDirection: 'row', gap: spacing.md },
+  pill: { flex: 1, height: 64, borderRadius: radii.card, backgroundColor: GROUP_BG, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  pillLabel: { fontSize: 16 },
+  section: { gap: spacing.sm },
+  sectionTitle: { letterSpacing: 0.6, marginLeft: spacing.xs },
+  group: { backgroundColor: GROUP_BG, borderRadius: radii.card, overflow: 'hidden' },
+  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
+  rowPressed: { backgroundColor: colors.divider },
+  rowText: { flex: 1, gap: 1 },
+  kv: { flexShrink: 1, textAlign: 'right' },
+  tip: { backgroundColor: '#E8F3FD', borderRadius: radii.card, padding: spacing.lg, gap: spacing.xs },
+  tipHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

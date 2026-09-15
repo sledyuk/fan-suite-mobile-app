@@ -32,11 +32,16 @@ const SearchScreen = observer(function SearchScreen() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen
-        options={{
-          title: 'Search',
-          headerSearchBarOptions: { placeholder: 'Search messages', autoCapitalize: 'none', hideWhenScrolling: false, onChangeText: (e) => setQuery(e.nativeEvent.text) },
-        }}
+      <Stack.Screen options={{ title: 'Search' }} />
+      {/* Native search field; on iOS 26 it lives in the split search tab and morphs out of the tab bar. */}
+      <Stack.SearchBar
+        placement="automatic"
+        placeholder="Search messages"
+        autoCapitalize="none"
+        hideWhenScrolling={false}
+        onChangeText={(e) => setQuery(e.nativeEvent.text)}
+        onSearchButtonPress={(e) => setQuery(e.nativeEvent.text)}
+        onCancelButtonPress={() => setQuery('')}
       />
       <LegendList
         data={data}
