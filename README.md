@@ -94,6 +94,41 @@ An external code review of the first submission candidate reproduced five messag
 
 The broadcast screen previously kept sent messages in component state only. It now enqueues one outbox item per recipient, so broadcasts are persisted, drained, retried and de-duplicated like any other send.
 
+## How this application was built
+
+### Design direction
+
+The task did not ask for a pixel-perfect reproduction, and the Figma file covers only the chat screen. I used it for structure, spacing and typography, then chose a Liquid Glass direction for the shell: translucent tab bar and header controls (`expo-glass-effect`), grouped controls, soft tinted surfaces and short, reduced-motion-aware transitions. This matches where new iOS apps and recent web apps are heading and keeps the missing states (offline, pending, failed, paywall) visually consistent with the designed screen.
+
+### Priorities
+
+Most of the time went into the message path, because that is where the task's correctness requirements live: the persisted outbox, stable client IDs, idempotent server acceptance, reconnect recovery order, retry backoff and paid-access blocking. Around it I built the screens needed to make the flow feel like a real product: a chat list whose rows show unread count, read/delivered/failed state of my last message, online presence and swipe actions; a fan details sheet; a simulated wallet; a paywall; and a debug console that drives every failure case.
+
+### Demo world
+
+The demo data is a Rick and Morty universe: fans such as Morty Smith and Birdperson, message scripts in their voice, and Schmeckles (SCH) as the currency in the wallet and paywall. The 50,000-message histories are generated deterministically from a seed per chat, so every run and every reviewer sees the same thread.
+
+### How the server and mock data are emulated
+
+There is no network. `MockChatServer` implements the same `ChatApi` interface a real backend client would, and lives in the app process behind a separate storage namespace (`server:`) from the client (`client:`), so "server state" and "device state" can be inspected and reset independently and survive a force-quit the same way a real backend would.
+
+- **History**: a deterministic generator (`historyGenerator.ts`) produces the seeded messages on demand. The server persists only the accepted tail, its `clientId -> message` map and the seed parameters, and regenerates the seed on load.
+- **Send**: assigns the final `seq` and server ID, remembers the `clientId`, and returns the existing message if the same `clientId` is sent again.
+- **Sync and pages**: `sync(chatId, sinceSeq)` returns everything after the client's cursor; `getPage` pages backwards for the virtualized list.
+- **Faults**: a small `Faults` object (offline, drop next response, fail next send with a typed error, latency) is toggled from the debug console and checked by the server on every call. A `NaiveChatServer` subclass without the client-ID map reproduces the duplicate bug.
+- **Billing**: `MockPurchases` plays the store (purchase, cancel, fail, restore) and `MockBackendBilling` plays the backend that confirms entitlement, optionally with a delay, so the two are never conflated.
+
+### Library choices
+
+- **MobX** for stores and workers: reactions drive the outbox drainer and sync worker, which keeps the recovery logic testable without React.
+- **`@legendapp/list`** for the virtualized thread and chat list.
+- **`expo-sqlite/kv-store`** for synchronous durable storage on both client and server namespaces.
+- Everything runs in **Expo Go**, so no development build is required to review it. For that reason I did not use `react-native-mmkv` or FlashList's native build, both of which I would prefer in production for storage throughput and list performance.
+
+### Platform status
+
+Developed and tested on an iPhone (iOS 27) and the iOS Simulator. The app also runs on Android, but the tab bar, safe areas and glass surfaces are tuned for iOS and have not been adapted or verified there. Search currently matches fan name, handle and the last message of each chat only; it does not search full message history.
+
 ## Requirement status and limitations
 
 The core implementation and focused automated tests for message safety, restart recovery, payment confirmation, restoration, failure states, pagination, and reduced motion are complete.
