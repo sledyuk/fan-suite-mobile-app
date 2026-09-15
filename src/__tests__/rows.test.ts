@@ -1,4 +1,4 @@
-import { buildRows, dayLabel } from '@/features/chat/rows';
+import { buildRows, dayLabel } from '@/screens/chat/rows';
 import type { ServerMessage } from '@/services/api/types';
 
 const NOW = new Date(2026, 8, 15, 12, 0, 0).getTime(); // local 15 Sep 2026 noon
