@@ -16,16 +16,11 @@ import { useStores } from '@/hooks/useStores';
 import { suitesFor, type Suite } from '@/services/mock/suites';
 import { colors, fonts, radii, spacing } from '@/theme/tokens';
 
-// Selection is part of the row data so the list repaints on every toggle.
 type Item =
   | { kind: 'header'; key: string; title: string }
   | { kind: 'suite'; key: string; suite: Suite; selected: boolean; first: boolean; last: boolean }
   | { kind: 'fan'; key: string; id: string; selected: boolean; first: boolean; last: boolean };
 
-/**
- * Recipient picker in the grouped-list language. Ticking a suite ticks every
- * fan in it. One fan → open that thread. Several → "Message to (N) users".
- */
 const NewMessageScreen = observer(function NewMessageScreen() {
   const insets = useSafeAreaInsets();
   const { billing, demo } = useStores();
@@ -52,7 +47,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
   }, [query, selected, FANS, SUITES]);
 
   const count = selected.size;
-  const needsPro = count > 1 && !billing.isActive;   // broadcast is a Pro feature
+  const needsPro = count > 1 && !billing.isActive;
   const cta = count === 0 ? 'Select recipients' : count === 1 ? 'Start Chat' : needsPro ? `Upgrade to message (${count}) users` : `Message to (${count}) Users`;
 
   const go = () => {
@@ -98,6 +93,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
         renderItem={renderItem}
         keyExtractor={(i) => i.key}
         getItemType={(i) => i.kind}
+        recycleItems
         estimatedItemSize={56}
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"

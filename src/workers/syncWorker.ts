@@ -2,10 +2,6 @@ import { reaction, runInAction } from 'mobx';
 import type { ChatApi } from '@/services/api/ChatApi';
 import type { RootStore } from '@/stores/RootStore';
 
-/**
- * On reconnect: pull what we missed for every loaded thread *before* the drainer
- * flushes pending sends, so incoming messages keep their earlier seq.
- */
 export async function syncOnce(root: RootStore, api: ChatApi) {
   runInAction(() => root.connectivity.setSyncing(true));
   try {
@@ -14,7 +10,6 @@ export async function syncOnce(root: RootStore, api: ChatApi) {
       runInAction(() => { if (msgs.length) root.applyServerMessages(chatId, msgs); });
     }
   } catch {
-    /* offline again; the drainer stays idle until the next reconnect */
   } finally {
     runInAction(() => root.connectivity.setSyncing(false));
   }

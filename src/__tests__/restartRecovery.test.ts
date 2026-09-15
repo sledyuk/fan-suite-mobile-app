@@ -8,13 +8,12 @@ import { startWorkers } from '@/workers/startWorkers';
 const CHAT = 'rick';
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
-/** One app session: fresh stores over the client storage, fresh server over its own storage. */
 const boot = async (client: MemoryKV, serverKV: MemoryKV) => {
   const cfg = { outcome: 'success' as const, confirmDelayMs: 0 };
   const root = new RootStore(client, new MockPurchases(() => cfg, client), new MockBackendBilling(() => cfg));
   const api = new MockChatServer(serverKV, () => root.connectivity.faults, { seedCount: 10 });
   const stop = startWorkers(root, api);
-  const page = await api.getPage(CHAT, null, 50).catch(() => null);      // initial load, tolerated offline
+  const page = await api.getPage(CHAT, null, 50).catch(() => null);
   if (page) root.chat.thread(CHAT).setPage(page.messages, page.hasMore);
   return { root, api, stop };
 };
@@ -22,7 +21,6 @@ const boot = async (client: MemoryKV, serverKV: MemoryKV) => {
 test('3 pending survive a restart; 4 incoming are recovered first; pending flush in order; no duplicates', async () => {
   const client = new MemoryKV(); const serverKV = new MemoryKV();
 
-  // Session 1: load, go offline, queue three.
   let s = await boot(client, serverKV);
   s.root.connectivity.setOnline(false);
   for (const t of ['a', 'b', 'c']) s.root.outbox.enqueue(CHAT, t);
@@ -30,17 +28,14 @@ test('3 pending survive a restart; 4 incoming are recovered first; pending flush
   expect(s.root.outbox.items).toHaveLength(3);
   s.stop(); s.root.dispose();
 
-  // The fan writes while we are away (server-side state only).
   s.api.injectIncoming(CHAT, ['i1', 'i2', 'i3', 'i4']);
 
-  // Session 2: "force quit + reopen". Still offline (persisted), queue intact.
   s = await boot(client, serverKV);
   expect(s.root.connectivity.online).toBe(false);
   expect(s.root.outbox.items.map((i) => [i.text, i.status])).toEqual([['a', 'pending'], ['b', 'pending'], ['c', 'pending']]);
   expect(s.root.chat.thread(CHAT).loaded).toBe(false);
-  expect(s.root.chat.thread(CHAT).ordered.length).toBe(10);          // cached recent history shows offline
+  expect(s.root.chat.thread(CHAT).ordered.length).toBe(10);
 
-  // Reconnect: sync first, then drain.
   s.root.connectivity.setOnline(true);
   for (let i = 0; i < 40 && s.root.outbox.items.length; i++) await flush();
 
@@ -49,7 +44,6 @@ test('3 pending survive a restart; 4 incoming are recovered first; pending flush
   expect(s.root.outbox.items).toHaveLength(0);
   expect(s.api.messageCount(CHAT)).toBe(10 + 4 + 3);
 
-  // A repeated sync response adds nothing and does not reorder.
   const before = s.root.chat.thread(CHAT).orderedIds;
   s.root.chat.thread(CHAT).upsert(await s.api.sync(CHAT, 0));
   expect(s.root.chat.thread(CHAT).orderedIds).toBe(before);
@@ -75,7 +69,7 @@ test('a failed send blocks the messages queued behind it in the same chat (local
   for (let i = 0; i < 20; i++) await flush();
   expect(s.root.outbox.items.map((i) => [i.text, i.status])).toEqual([['first', 'failed'], ['second', 'pending']]);
   expect(s.api.messageCount(CHAT)).toBe(10);
-  s.root.outbox.retry(s.root.outbox.items[0].clientId);              // user taps Retry
+  s.root.outbox.retry(s.root.outbox.items[0].clientId);
   for (let i = 0; i < 40 && s.root.outbox.items.length; i++) await flush();
   expect(s.root.chat.thread(CHAT).ordered.slice(-2).map((m) => m.text)).toEqual(['first', 'second']);
   s.stop(); s.root.dispose();
@@ -83,9 +77,8 @@ test('a failed send blocks the messages queued behind it in the same chat (local
 
 test('a sync that returns our own message (by clientId) retires the outbox item — no double bubble', async () => {
   const s = await boot(new MemoryKV(), new MemoryKV());
-  s.root.connectivity.setOnline(false);                                  // drainer idle
+  s.root.connectivity.setOnline(false);
   const item = s.root.outbox.enqueue(CHAT, 'raced');
-  // The server accepted it but the response was lost; a sync then delivers it before the drainer retries.
   s.root.connectivity.setFault('offline', false); s.root.connectivity.setFault('dropNextResponse', true);
   await expect(s.api.send({ chatId: CHAT, clientId: item.clientId, text: 'raced', createdAt: item.createdAt })).rejects.toMatchObject({ code: 'NETWORK' });
   s.root.applyServerMessages(CHAT, await s.api.sync(CHAT, s.root.chat.thread(CHAT).lastSeq));
@@ -98,12 +91,12 @@ test('network errors retry three times with backoff before the item is marked fa
   jest.useFakeTimers();
   const s = await boot(new MemoryKV(), new MemoryKV());
   const sendSpy = jest.spyOn(s.api, 'send');
-  s.root.connectivity.setFault('offline', true);           // server unreachable, but the client still believes it is online
+  s.root.connectivity.setFault('offline', true);
   s.root.outbox.enqueue(CHAT, 'flaky');
   await jest.advanceTimersByTimeAsync(0);
   await jest.advanceTimersByTimeAsync(500); await jest.advanceTimersByTimeAsync(1500); await jest.advanceTimersByTimeAsync(4000);
   await jest.advanceTimersByTimeAsync(10);
-  expect(sendSpy).toHaveBeenCalledTimes(4);                  // 1 send + 3 retries
+  expect(sendSpy).toHaveBeenCalledTimes(4);
   expect(s.root.outbox.items[0].status).toBe('failed');
   expect(s.root.outbox.items[0].error?.recoverable).toBe(true);
   s.stop(); s.root.dispose(); jest.useRealTimers();

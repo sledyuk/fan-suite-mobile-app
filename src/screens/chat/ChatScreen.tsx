@@ -20,13 +20,11 @@ interface Props {
 const ChatScreen = observer(function ChatScreen({ conversation }: Props) {
   const { demo } = useStores();
   const { rows, loadOlder, loadingOlder } = useThread(conversation.id);
-  // While open, this thread is "read": clears the badge now and keeps new incoming read.
   useEffect(() => {
     runInAction(() => demo.setActiveChat(conversation.id));
     return () => runInAction(() => demo.setActiveChat(null));
   }, [demo, conversation.id]);
   const { send, retry, discard } = useChatActions(conversation.id);
-  // Back falls through to the list when the thread was opened without history (push notification, reload).
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/messages'));
   const openDetails = () => router.push({ pathname: '/fan/[fanId]', params: { fanId: conversation.id } });
 

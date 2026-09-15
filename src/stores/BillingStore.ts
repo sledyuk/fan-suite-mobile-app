@@ -3,14 +3,6 @@ import type { BackendBilling, Entitlement, Product, PurchaseResult, PurchaseServ
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { persistSlice } from './persist';
 
-/**
- * Purchase flow + entitlement. Rules from the brief:
- * - one flow at a time (repeated taps are ignored),
- * - a store "purchased" only means awaiting_confirmation,
- * - access is granted when the backend confirms, deduped by receipt,
- * - cancel/fail never touch an entitlement that is still valid,
- * - awaiting_confirmation survives restart and is re-checked on launch.
- */
 export class BillingStore {
   product: Product;
   entitlement: Entitlement;
@@ -62,7 +54,6 @@ export class BillingStore {
 
   buy() { return this.run(() => this.purchases.purchase(this.product.id)); }
   restore() { return this.run(() => this.purchases.restore()); }
-  /** Re-ask the backend for a receipt we are still waiting on (launch, "Check again"). */
   async checkAgain() { const r = this.entitlement.receiptId; if (r && !this.isActive) await this.confirm(r); }
   clear() { this.entitlement = { productId: this.product.id, status: 'none' }; this.processedReceipts = []; this.lastError = null; this.lastEvent = null; this.purchaseInFlight = false; }
 }

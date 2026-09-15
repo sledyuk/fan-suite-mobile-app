@@ -2,11 +2,6 @@ import { File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import type { Attachment } from '@/services/api/types';
 
-/**
- * Opens the photo library for a photo or video and copies the pick into the
- * app's documents directory so the outbox item still resolves after a restart
- * (picker URIs live in a cache the OS may purge). Returns null on cancel.
- */
 export async function pickMedia(): Promise<Attachment | null> {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) return null;
@@ -21,7 +16,6 @@ export async function pickMedia(): Promise<Attachment | null> {
     new File(a.uri).copy(dest);
     uri = dest.uri;
   } catch {
-    /* keep the picker URI; still works for this session */
   }
   return { kind, uri, width: a.width, height: a.height, durationMs: a.duration ?? undefined };
 }

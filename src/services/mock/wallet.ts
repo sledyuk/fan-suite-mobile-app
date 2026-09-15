@@ -3,16 +3,14 @@ export type TxKind = 'subscription' | 'tip' | 'ppv' | 'refund' | 'payout';
 export interface Transaction {
   id: string;
   kind: TxKind;
-  /** Positive = money in, negative = out. Schmeckles. */
   amount: number;
-  counterparty: string;   // fan name or "Bank"
-  at: number;             // epoch ms
+  counterparty: string;
+  at: number;
 }
 
 const NOW = Date.UTC(2026, 8, 15, 11, 0, 0);
 const h = (n: number) => NOW - n * 3_600_000;
 
-/** Creator earnings, in Schmeckles. Static fixture; consistent with the fan profiles' buying power. */
 export const WALLET = {
   balance: 1_284.5,
   pendingPayout: 320,
@@ -29,7 +27,6 @@ export const WALLET = {
   ] satisfies Transaction[],
 };
 
-/** Deterministic older activity so the list actually scrolls. */
 function history(): Transaction[] {
   const fans = ['Rick Sanchez', 'Unity', 'Birdperson', 'Beth Smith', 'Summer Smith', 'Mr. Meeseeks', 'Noob-Noob', 'Squanchy'];
   const kinds: TxKind[] = ['subscription', 'tip', 'ppv', 'subscription', 'tip'];

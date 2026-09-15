@@ -2,9 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { persistSlice } from './persist';
 
-/** User-facing preferences. Persisted under `settings.v1`. */
 export class SettingsStore {
-  /** Shows the floating debug button on every screen (More → Developer mode). Defaults on in dev builds. */
   developerMode = __DEV__;
   dispose: () => void;
 

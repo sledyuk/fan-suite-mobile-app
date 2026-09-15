@@ -12,10 +12,6 @@ interface Props {
   onDiscard: (clientId: string) => void;
 }
 
-/**
- * Memoised + observer: confirmed rows never re-render; an outbox row re-renders
- * only when its own item's status changes (MobX tracks the fields it reads).
- */
 export const MessageRow = memo(observer(function MessageRow({ row, peer, onRetry, onDiscard }: Props) {
   if (row.type === 'day') return <DaySeparator label={row.label} />;
   if (row.type === 'outbox') return <Bubble kind="outbox" item={row.item} onRetry={onRetry} onDiscard={onDiscard} />;

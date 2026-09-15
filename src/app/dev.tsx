@@ -7,14 +7,6 @@ import { billingConfig, container } from '@/services/container';
 
 type Run = 'seed' | 'reset' | 'offline' | 'online' | 'send' | 'inject' | 'drop' | 'buggy' | 'fail' | 'outcome' | 'retry' | 'discard';
 
-/**
- * Debug sheet. With `?run=` it executes one scripted action and closes, so the
- * demo flows can be driven from deep links (recordings, simulator automation):
- *   dev?run=seed | reset | offline | online | inject&chatId=rick | drop
- *   dev?run=send&chatId=rick&text=hello   dev?run=buggy&on=1
- *   dev?run=fail&code=BLOCKED             dev?run=outcome&value=success_delayed
- *   dev?run=retry&chatId=rick (first failed item) dev?run=discard&chatId=rick
- */
 export default function DevRoute() {
   const p = useLocalSearchParams<{ run?: Run; chatId?: string; text?: string; on?: string; code?: string; value?: string }>();
   const root = useStores();

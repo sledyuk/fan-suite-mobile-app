@@ -4,12 +4,6 @@ import { AppText } from '@/components/AppText';
 import type { OutboxItem } from '@/services/api/types';
 import { colors, spacing } from '@/theme/tokens';
 
-/**
- * Caption under an unconfirmed bubble. Pending: clock + "Sending…".
- * Failed: "Not delivered" plus what the user can do, in the iMessage /
- * WhatsApp style. The actions themselves are a tap (retry / subscribe) and a
- * swipe right (delete) on the bubble, see Bubble.
- */
 export function StatusLine({ item }: { item: OutboxItem }) {
   if (item.status !== 'failed') {
     return (

@@ -5,7 +5,7 @@ export interface FanProfile {
   location: string;
   preferences?: string;
   suiteName: string;
-  fanSince: string;   // display string
+  fanSince: string;
   rebill: boolean;
   lastOnline: string;
   lastResponse: string;
@@ -16,13 +16,12 @@ export interface FanProfile {
   note?: string;
 }
 
-/** Delivery state of the creator's own last message (only meaningful when `from === 'creator'`). */
 export type OutgoingStatus = 'sending' | 'delivered' | 'seen' | 'failed';
 
 export interface LastMessage {
   text: string;
   from: 'fan' | 'creator';
-  at: number; // epoch ms
+  at: number;
   status?: OutgoingStatus;
 }
 
@@ -30,15 +29,12 @@ export interface Conversation {
   id: string;
   fan: Participant;
   profile: FanProfile;
-  /** Seed for the deterministic thread behind this conversation. */
   seed: number;
   last: LastMessage;
-  /** Fan messages the creator has not opened yet. */
   unreadCount: number;
   online: boolean;
   pinned?: boolean;
   muted?: boolean;
-  /** FanSuite (tier) this fan is subscribed to. */
   suiteId: 'all-access' | 'vip' | 'free';
 }
 
@@ -52,7 +48,6 @@ const profile = (p: Partial<FanProfile> & Pick<FanProfile, 'bio' | 'location'>):
   totalSpent: 320, avgTip: 3.52, avgPpv: 30.12, purchases: 2, ...p,
 });
 
-// Parody fans in our own words. Avatars come from the Rick and Morty API; <Avatar/> falls back to initials while loading or offline.
 export const CONVERSATIONS: Conversation[] = [
   { id: 'rick', fan: fan('Rick Sanchez', '@rickc137', rmAvatar(1), true), seed: 42, suiteId: 'vip',
     profile: profile({ bio: 'Scientist, grandfather, chaos agent. Subscribed "for research". Sends gifts at 3am with no explanation and expects a reply by 3:05.', location: 'Dimension C-137', note: 'Do not let him near the garage stream setup again.', totalSpent: 1250, avgTip: 25, avgPpv: 60, purchases: 11 }),
@@ -90,6 +85,4 @@ export function findConversation(id: string | undefined): Conversation | undefin
   return CONVERSATIONS.find((c) => c.id === id);
 }
 
-/** Fixed "now" for the fixture so list stamps are stable in screenshots and tests. */
 export const FIXTURE_NOW = NOW;
-

@@ -13,7 +13,6 @@ interface Props {
   onDetails?: () => void;
 }
 
-/** Creator-side header: the fan's identity and a "Full Details" button that opens their profile sheet. */
 export function ChatHeader({ peer, online, onBack, onDetails }: Props) {
   const insets = useSafeAreaInsets();
   return (

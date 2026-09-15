@@ -1,6 +1,3 @@
-// Rasterize an SVG to a transparent PNG at a given pixel size (macOS, NSImage supports SVG).
-// Draws at 4× and downsamples with high-quality interpolation so 1x/2x/3x bitmaps stay crisp.
-// swift scripts/svg2png.swift <in.svg> <out.png> <px>
 import AppKit
 let args = CommandLine.arguments
 guard args.count == 4, let image = NSImage(contentsOfFile: args[1]), let px = Int(args[3]) else { exit(1) }

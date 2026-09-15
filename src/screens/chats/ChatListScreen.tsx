@@ -40,6 +40,7 @@ const ChatListScreen = observer(function ChatListScreen() {
         data={items}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        recycleItems
         estimatedItemSize={60}
         refreshing={refreshing}
         onRefresh={refresh}

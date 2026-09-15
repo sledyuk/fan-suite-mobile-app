@@ -3,10 +3,6 @@ import { AccessibilityInfo } from 'react-native';
 
 let cached: boolean | null = null;
 
-/**
- * The user's "Reduce Motion" setting, from RN's AccessibilityInfo. Every
- * animation in the app checks this so transitions can be skipped honestly.
- */
 export function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(cached ?? false);
   useEffect(() => {

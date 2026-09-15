@@ -2,7 +2,7 @@ import { dayLabel } from '@/lib/time';
 import { buildRows } from '@/screens/chat/rows';
 import type { ServerMessage } from '@/services/api/types';
 
-const NOW = new Date(2026, 8, 15, 12, 0, 0).getTime(); // local 15 Sep 2026 noon
+const NOW = new Date(2026, 8, 15, 12, 0, 0).getTime();
 const at = (dayOffset: number, hour = 9): number => {
   const d = new Date(NOW); d.setDate(d.getDate() + dayOffset); d.setHours(hour, 0, 0, 0); return d.getTime();
 };
@@ -15,8 +15,8 @@ describe('buildRows', () => {
     expect(rows.map((r) => r.type)).toEqual(['day', 'msg', 'msg', 'day', 'msg']);
     expect(rows[0]).toMatchObject({ label: 'Yesterday' });
     expect(rows[3]).toMatchObject({ label: 'Today' });
-    expect(rows[1]).toMatchObject({ mine: false }); // fan
-    expect(rows[2]).toMatchObject({ mine: true }); // creator = me
+    expect(rows[1]).toMatchObject({ mine: false });
+    expect(rows[2]).toMatchObject({ mine: true });
   });
 
   it('labels older days with a short date', () => {

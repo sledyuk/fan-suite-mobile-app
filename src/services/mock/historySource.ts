@@ -1,11 +1,5 @@
 import type { Page, ServerMessage } from '../api/types';
 
-/**
- * In-memory paged read over an ascending-by-seq array.
- * `beforeSeq === null` means "newest page". Pages come back ascending so the
- * caller can prepend them without re-sorting. This is the seam that the mock
- * chat server will implement in the next step.
- */
 export interface HistorySource {
   getPage(beforeSeq: number | null, limit: number): Promise<Page<ServerMessage>>;
 }

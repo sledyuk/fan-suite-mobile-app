@@ -9,7 +9,6 @@ interface Props {
   body: string;
 }
 
-/** First-run state for a screen: what will appear here. Demo data is loaded from the debug sheet only. */
 export function EmptyState({ icon: Icon, title, body }: Props) {
   return (
     <View style={styles.wrap}>

@@ -1,56 +1,112 @@
-# Welcome to your Expo app 👋
+# FanSuite chat task
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An Expo SDK 57 / React Native / TypeScript fan-chat prototype with an offline outbox, an idempotent local chat server, paginated history, and a simulated subscription paywall.
 
-## Get started
+The screen started from the provided Figma design and was refined for this implementation with an improved Liquid Glass visual direction, including translucent surfaces, grouped controls, clearer state treatments, and platform-appropriate spacing and motion.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Run locally
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Then open the project in an iOS Simulator, Android emulator, development build, or Expo Go where the installed native modules are supported. Platform commands are also available:
 
-### Other setup steps
+```bash
+npm run ios
+npm run android
+npm run web
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+No real store account, backend, or private credential is required. The mock uses separate client and server storage namespaces in tests; the app uses local key-value storage.
 
-## Learn more
+## What is implemented
 
-To learn more about developing your project with Expo, look at the following resources:
+### Chat and recovery
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Sending persists a message to `OutboxStore` before it is queued. Each item receives a stable `clientId` from `expo-crypto`.
+- Pending outbox items survive a force-quit/restart. A `sending` item is reopened as `pending` during hydration.
+- `MockChatServer` persists accepted messages and its `clientId -> server message` map separately from the client outbox. A retry of an accepted send returns the original server message instead of appending another one.
+- Reconnect synchronizes incoming messages before draining outgoing messages, so the server assigns the final order and missed incoming messages appear first.
+- The client upserts by server ID and retires an outbox item by `clientId`; repeated sync responses and a response/sync race do not create duplicate bubbles or reorder an unchanged thread.
+- Sends are drained one at a time in local order. Recoverable failures can be retried; a non-recoverable blocked or payment-required failure remains visible with its text and explanation. A failed item blocks later sends in the same chat until it is retried or discarded.
+- History is loaded in pages of 50 through `LegendList`. Seeded demo mode creates deterministic 50,000-message histories.
+- The composer supports multiline text, a length limit, quick emoji actions, photo/video attachment selection, safe-area padding, keyboard avoidance, and reduced-motion-aware list transitions.
 
-## Join the community
+### Reproducing the duplicate-send scenario
 
-Join our community of developers creating universal apps.
+Open a chat, open the debug controls, enable **Buggy server**, enable **Drop next response**, and send a message. The naive server accepts the message but loses the response; retrying creates a second server message because it does not remember the client ID.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Turn **Buggy server** off and repeat the scenario. The fixed mock remembers the accepted `clientId` and returns the original message on retry, leaving one copy in the thread. The debug sheet also supports offline mode, four incoming messages, typed send failures, reset, and demo seeding.
+
+### Payments
+
+The paywall is deliberately labelled **Simulated billing — no real charge**. It displays the product, monthly price, perks, and these states:
+
+- purchase success, followed by backend confirmation;
+- cancellation;
+- store failure;
+- delayed backend confirmation;
+- restoration of the last simulated purchase.
+
+`BillingStore` keeps purchase results separate from backend entitlement confirmation. Access remains unavailable while confirmation is pending, duplicate purchase taps are ignored while a flow is in flight, and an unrelated cancellation/failure does not revoke an already-active entitlement. Confirmation receipts are de-duplicated and the awaiting state is persisted across restart.
+
+In production, the purchase service would be backed by StoreKit and Google Play Billing. The receipt/token would be sent to a backend, validated against the store, and associated with the account. The backend—not the client—would own entitlement state and handle renewal, expiry, refunds, revocation, grace periods, and billing retries.
+
+## Verification
+
+```bash
+npm test -- --runInBand
+npm run typecheck
+git diff --check
+```
+
+Current automated result: **9 Jest suites, 28 tests passed**, TypeScript typecheck passed, and `git diff --check` passed. The main implementation and manual testing focus was an iPhone running iOS 27, where the chat flow was made workable end to end.
+
+Focused coverage includes:
+
+- lost response + retry against naive and idempotent servers;
+- accepted-message persistence across a server instance restart;
+- three pending messages surviving an app restart, four incoming messages recovered first, ordered drain, and no duplicates;
+- retryable versus non-retryable send failures and backoff;
+- duplicate suppression when sync races a send;
+- delayed purchase confirmation, duplicate events, cancellation/failure preservation, restore, and billing restart recovery;
+- deterministic 50,000-message generation and backwards pagination;
+- outbox persistence and thread ordering.
+
+## Requirement status and limitations
+
+The core implementation and focused automated tests for message safety, restart recovery, payment confirmation, restoration, failure states, pagination, and reduced motion are complete.
+
+The following submission deliverables are not represented as completed in this repository:
+
+- no repeatable real-device/simulator performance profile with frame timing, dropped frames, and memory measurements;
+- no before/after performance measurement;
+- no recording of the recovery sequences;
+- iPhone/iOS 27 was manually tested and was the primary target. Android was opened briefly but not functionally tested, and its UI has not been specifically adapted. The web version was not tested;
+- no production billing, backend, moderation system, or real media upload service.
+
+The tests use Jest and deterministic mock storage, so they validate state transitions and ordering rules but are not proof of real-phone performance. Existing MobX strict-mode messages emitted by the test environment do not fail the test command.
+
+## Large media upload design
+
+Uploads should be represented by a durable local job containing an upload ID, file URI, size, checksum, chunk size, completed-part map, and retry metadata. The client would ask the backend for an upload session, upload chunks with idempotent part numbers, persist each acknowledged part, and resume missing parts after a network interruption or app restart. The backend would finalize only after validating all parts and the checksum.
+
+Backgrounding should pause or hand the job to an OS-supported background transfer facility and continue within platform limits. A user force-quit/force-stop should be treated as an explicit interruption: persist the job, stop active work, and offer resume on the next launch rather than assuming the upload continues.
+
+## App-store considerations
+
+This prototype includes direct fan/creator messaging and creator-provided content. A production app would need clear terms and privacy disclosures, content filtering/moderation, reporting, blocking, timely handling of reports, age/content controls where applicable, and published support contact information.
+
+- [Apple App Review Guidelines — User-Generated Content and In-App Purchase](https://developer.apple.com/app-store/review/guidelines/) (Guidelines 1.2 and 3.1.1)
+- [Google Play User-Generated Content policy](https://support.google.com/googleplay/android-developer/answer/9876937)
+- [Google Play Payments policy](https://support.google.com/googleplay/android-developer/answer/10281818)
+
+The monthly Pro entitlement unlocks digital app functionality, so the production mobile flow should use Apple In-App Purchase or Google Play Billing as applicable, send the transaction to the backend for validation, and avoid granting access from an unverified client-only result. Any web/alternative billing flow would require a separate policy and regional review.
+
+## AI use and scope
+
+Claude Code and Codex were used as development assistants for different parts of the task. Their contributions included generating and refining implementation code, discussing architecture and recovery/payment decisions, reviewing and structuring documentation, and iterating on UI/UX details such as states, accessibility, keyboard handling, and interaction flows.
+
+All generated output was reviewed and adapted during implementation. The final behavior was checked against the task requirements and verified with the focused tests and typecheck. Agent/process notes and generated working documents are intentionally not retained in this branch. The source of truth is the code, tests, and this README.

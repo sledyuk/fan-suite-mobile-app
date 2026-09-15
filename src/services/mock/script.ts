@@ -1,5 +1,3 @@
-// Parody dialogue in our own words for the demo thread. Each entry is
-// [creator line, fan line]. Creator (app user) = Morty, fan = Rick.
 export const SCRIPT: ReadonlyArray<readonly [string, string]> = [
   ['Rick, are we streaming tonight?', 'Only if the portal gun finishes charging. Bring snacks.'],
   ['I sent you a little gift 🎁', 'Twenty bucks. That is one fifth of a plumbus. Thanks, I guess.'],

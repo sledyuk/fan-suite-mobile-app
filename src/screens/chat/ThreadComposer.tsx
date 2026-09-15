@@ -15,11 +15,6 @@ interface Props {
   onSend: (text: string, attachment?: Attachment) => void;
 }
 
-/**
- * Creator composer from the Figma: emoji quick-bar (h36, r10, subtle bg),
- * bordered 54pt field with a "+" attach affordance, 44pt primary send, and the
- * "0/400" counter. Draft is local state on purpose: keystrokes never touch MobX.
- */
 export function ThreadComposer({ onSend }: Props) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');

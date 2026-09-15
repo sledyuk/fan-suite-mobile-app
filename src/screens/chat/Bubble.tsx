@@ -18,14 +18,6 @@ type Props =
   | { kind: 'msg'; msg: ServerMessage; mine: boolean; peer: Participant }
   | { kind: 'outbox'; item: OutboxItem; onRetry: (id: string) => void; onDiscard: (id: string) => void };
 
-/**
- * Geometry from the Figma frame (375pt): radius 16, padding 16/12, max width
- * 84%, incoming bubbles sit after a 32pt avatar with a 13pt gap, timestamp
- * lives inside the bubble bottom-left. Gift messages get a 48pt icon box.
- * Outbox bubbles are dimmed while unconfirmed. A failed one keeps its look, gets a
- * red "!" badge and a "Not delivered" caption; tap = retry (or subscribe), swipe
- * left = delete (iOS convention, actions on the trailing edge). Same pattern as iMessage / WhatsApp / Telegram.
- */
 export function Bubble(props: Props) {
   const reduced = useReducedMotion();
   const entering = reduced ? undefined : FadeInDown.duration(180);

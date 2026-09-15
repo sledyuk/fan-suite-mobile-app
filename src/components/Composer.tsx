@@ -10,11 +10,6 @@ interface Props {
   autoFocus?: boolean;
 }
 
-/**
- * Minimal composer from the Figma: bordered multiline field + 44pt primary send.
- * Draft text is local state on purpose (keystrokes must not re-render lists).
- * The thread composer will extend this with attach / gift / emoji quick-bar.
- */
 export function Composer({ placeholder = 'Start typing…', maxLength = 400, onSend, autoFocus }: Props) {
   const [text, setText] = useState('');
   const trimmed = text.trim();

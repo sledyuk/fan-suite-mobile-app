@@ -5,7 +5,6 @@ import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 const CACHE_KEY = (chatId: string) => `thread-cache.v1.${chatId}`;
 const CACHE_SIZE = 50;
 
-/** Confirmed messages of one thread, ordered by the server's seq. */
 export class ThreadState {
   byId = observable.map<ServerId, ServerMessage>({}, { deep: false });
   orderedIds: ServerId[] = [];
@@ -17,7 +16,6 @@ export class ThreadState {
 
   constructor() { makeAutoObservable(this); }
 
-  /** Upsert by server id. Repeats never add copies; order only changes when a new id arrives. */
   upsert(msgs: ServerMessage[]) {
     let inserted = false;
     for (const m of msgs) {
@@ -36,11 +34,6 @@ export class ThreadState {
   get ordered(): ServerMessage[] { return this.orderedIds.map((id) => this.byId.get(id)!); }
 }
 
-/**
- * History is re-paged from the server on launch, but the newest CACHE_SIZE
- * confirmed messages of each thread are cached locally so a thread opened
- * offline (or right after a restart) shows recent context above the outbox.
- */
 export class ChatStore {
   threads = observable.map<string, ThreadState>({}, { deep: false });
   private disposers: (() => void)[] = [];

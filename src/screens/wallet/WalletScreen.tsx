@@ -20,7 +20,6 @@ const ICON: Record<TxKind, IconComponent> = {
 const FIXTURE_NOW = Date.UTC(2026, 8, 15, 11, 0, 0);
 const keyExtractor = (t: Transaction) => t.id;
 
-/** Creator earnings in Schmeckles. Balance card stays put; activity scrolls beneath it. Payout is simulated. */
 const WalletScreen = observer(function WalletScreen() {
   const insets = useSafeAreaInsets();
   const { wallet } = useStores().demo;

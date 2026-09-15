@@ -11,38 +11,31 @@ interface Props {
   title: string;
   subtitle?: string;
   onClose: () => void;
-  /** When set, a leading back arrow is shown (modal-internal stack). */
   onBack?: () => void;
-  /** Optional contained icon action rendered left of the close button (iOS 26 toolbar style). */
   action?: React.ReactNode;
-  /** Set when the body should not scroll (e.g. it owns its own list). */
   scroll?: boolean;
-  /** Show the app icon before the title (Expo dev-menu header style). */
+  fitContent?: boolean;
+  bodyGap?: number;
   appIcon?: boolean;
   children: React.ReactNode;
 }
 
-/**
- * Shared chrome for every modal sheet in the app, following iOS 26 conventions:
- * left-aligned title (+ optional subtitle), icon-only contained buttons on the
- * right, spacious padded body, and content that fades under the header on scroll.
- */
-export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll = true, appIcon, children }: Props) {
+export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll = true, fitContent = false, bodyGap = spacing.xl, appIcon, children }: Props) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
     <ScrollView
-      contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + spacing.xl }]}
+      contentContainerStyle={[styles.body, { gap: bodyGap, paddingBottom: insets.bottom + spacing.xl }]}
       showsVerticalScrollIndicator={false}
       contentInsetAdjustmentBehavior="never"
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.body, { flex: 1, paddingBottom: insets.bottom + spacing.xl }]}>{children}</View>
+    <View style={[styles.body, !fitContent && styles.flexBody, { gap: bodyGap, paddingBottom: insets.bottom + spacing.xl }]}>{children}</View>
   );
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, fitContent && styles.contentSized]}>
       <View style={styles.header}>
         {onBack && (
           <IconButton accessibilityLabel="Back" size={36} onPress={onBack} style={styles.back}>
@@ -59,7 +52,7 @@ export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll =
           <X size={18} color={colors.textMuted} strokeWidth={2.5} />
         </IconButton>
       </View>
-      <View style={styles.bodyWrap}>
+      <View style={[styles.bodyWrap, fitContent && styles.contentSized]}>
         {body}
         <LinearGradient colors={[colors.bg, 'rgba(255,255,255,0)']} style={styles.fade} pointerEvents="none" />
       </View>
@@ -69,6 +62,7 @@ export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll =
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  contentSized: { flexGrow: 0 },
   header: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   titles: { flex: 1 },
   title: { fontSize: 20, lineHeight: 26 },
@@ -76,6 +70,7 @@ const styles = StyleSheet.create({
   appIcon: { width: 44, height: 44, borderRadius: 22 },
   back: { marginLeft: -spacing.sm },
   bodyWrap: { flex: 1 },
+  flexBody: { flex: 1 },
   body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xl },
   fade: { position: 'absolute', top: 0, left: 0, right: 0, height: 16 },
 });

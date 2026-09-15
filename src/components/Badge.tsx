@@ -9,7 +9,6 @@ interface Props {
   color?: string;
 }
 
-/** Pill used for entitlement / status in the chat header. */
 export function Badge({ label, icon, bg = colors.primarySoft, color = colors.primary }: Props) {
   return (
     <View style={[styles.pill, { backgroundColor: bg }]}>

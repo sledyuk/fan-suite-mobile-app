@@ -7,14 +7,8 @@ import { persistSlice } from './persist';
 export interface WalletState { balance: number; pendingPayout: number; thisMonth: number; transactions: Transaction[] }
 const EMPTY_WALLET: WalletState = { balance: 0, pendingPayout: 0, thisMonth: 0, transactions: [] };
 
-/**
- * Everything the app shows that would come from the backend in production:
- * conversations and wallet. Two states: empty (fresh account) and seeded
- * (demo data). Persisted so pins/read/mute survive a restart.
- */
 export class DemoDataStore {
   seeded = false;
-  /** Thread currently on screen: incoming messages there are read immediately. Not persisted. */
   activeChatId: string | null = null;
   conversations: Conversation[] = [];
   wallet: WalletState = EMPTY_WALLET;
@@ -36,7 +30,6 @@ export class DemoDataStore {
 
   find(id: string | undefined) { return this.conversations.find((c) => c.id === id); }
   get unreadTotal() { return this.conversations.reduce((n, c) => n + c.unreadCount, 0); }
-  /** Pinned first, then newest last message. */
   get ordered() { return [...this.conversations].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.last.at - a.last.at); }
 
   private patch(id: string, fn: (c: Conversation) => Partial<Conversation>) {
@@ -48,6 +41,5 @@ export class DemoDataStore {
   setActiveChat(id: string | null) { this.activeChatId = id; if (id) this.markRead(id); }
   togglePin(id: string) { this.patch(id, (c) => ({ pinned: !c.pinned })); }
   toggleMute(id: string) { this.patch(id, (c) => ({ muted: !c.muted })); }
-  /** Keep the list row in step with the thread: our own last message and its delivery state. */
   setLast(id: string, last: Conversation['last']) { this.patch(id, () => ({ last })); }
 }

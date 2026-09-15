@@ -2,7 +2,6 @@ import type { BackendBilling } from '../api/BillingApi';
 
 const MONTH = 30 * 86_400_000;
 
-/** Stand-in for server-side receipt validation. Idempotent per receipt; delay is configurable. */
 export class MockBackendBilling implements BackendBilling {
   private confirmed = new Map<string, number>();
   constructor(private config: () => { confirmDelayMs: number }) {}

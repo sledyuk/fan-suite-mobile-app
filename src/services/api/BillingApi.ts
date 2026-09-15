@@ -1,4 +1,3 @@
-/** Amounts are in Schmeckles (ʂ), the demo's currency. `usdHint` is display only. */
 export interface Product {
   id: string;
   title: string;
@@ -8,7 +7,6 @@ export interface Product {
   perks: string[];
 }
 
-/** What the store SDK would return. Deliberately knows nothing about our backend. */
 export type PurchaseResult =
   | { status: 'purchased'; receiptId: string }
   | { status: 'cancelled' }
@@ -20,7 +18,6 @@ export interface PurchaseService {
   restore(): Promise<PurchaseResult>;
 }
 
-/** Our backend validating a receipt. Access is granted only on its say-so. */
 export interface BackendBilling {
   confirm(receiptId: string): Promise<{ status: 'active'; expiresAt: number }>;
 }

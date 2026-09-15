@@ -12,10 +12,6 @@ interface Props {
 
 const glass = isLiquidGlassAvailable();
 
-/**
- * Round icon button in the iOS 26 toolbar style: Liquid Glass where available,
- * a subtle filled circle elsewhere (Android, older iOS).
- */
 export function GlassIconButton({ accessibilityLabel, onPress, size = 36, style, children }: Props) {
   const shape = { width: size, height: size, borderRadius: size / 2 };
   return (

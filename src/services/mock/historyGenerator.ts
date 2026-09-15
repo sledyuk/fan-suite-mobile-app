@@ -1,7 +1,6 @@
 import type { ServerMessage } from '../api/types';
 import { SCRIPT } from './script';
 
-/** Small seedable PRNG so the 50k history is identical on every run. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -13,15 +12,8 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** Fixed anchor (not Date.now) so the seeded history never changes between runs. */
 export const DEFAULT_END_AT = Date.UTC(2026, 8, 15, 11, 0, 0);
 
-/**
- * Deterministic thread: alternating creator/fan lines taken from SCRIPT
- * (creator speaks first in each pair). Timestamps advance 30s-10min and are
- * shifted so the last message sits at `endAt`. The generator owns seq/ids so a
- * fresh mock server can reseed identically.
- */
 export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT): ServerMessage[] {
   const rnd = mulberry32(seed);
   const out: ServerMessage[] = new Array(count);
@@ -40,7 +32,6 @@ export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT
       createdAt: t,
     };
   }
-  // Shift so the newest message lands on `endAt`; keeps the thread "recent" and still deterministic.
   const shift = endAt - t;
   for (const m of out) m.createdAt += shift;
   return out;

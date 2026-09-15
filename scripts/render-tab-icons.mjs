@@ -1,7 +1,3 @@
-// Renders the Figma tab glyphs (assets/icons/tabs/src/*.svg, 24pt boxes, black fills) to
-// template PNGs at 1x/2x/3x. The native tab bar tints template images, so one glyph serves
-// both states. macOS only: rasterizes via scripts/svg2png.swift (transparent background).
-//   node scripts/render-tab-icons.mjs
 import { execSync } from 'node:child_process';
 import { readdirSync, rmSync } from 'node:fs';
 

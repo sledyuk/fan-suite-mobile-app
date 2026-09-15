@@ -10,11 +10,6 @@ export interface ConversationActions {
   toggleMute: (id: string) => void;
 }
 
-/**
- * Conversation list from the demo store (empty or seeded), pull-to-refresh, and
- * row actions. Call from an `observer` component. Refresh is a simulated round
- * trip; with a real backend it would call the conversations endpoint.
- */
 export function useConversations() {
   const { demo } = useStores();
   const [refreshing, setRefreshing] = useState(false);

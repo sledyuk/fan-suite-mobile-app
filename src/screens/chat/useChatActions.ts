@@ -6,7 +6,6 @@ import type { Attachment } from '@/services/api/types';
 
 export const MAX_LENGTH = 400;
 
-/** Send = persist to the outbox and let the drainer do the rest. Retry = back to pending. */
 export function useChatActions(chatId: string) {
   const root = useStores();
 

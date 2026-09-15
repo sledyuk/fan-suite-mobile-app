@@ -4,10 +4,6 @@ import type { Attachment, OutboxError, OutboxItem } from '@/services/api/types';
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { persistSlice } from './persist';
 
-/**
- * Queue of sends the server has not confirmed yet, in local order, persisted on
- * every change. A crash mid-send comes back as pending (see hydrate).
- */
 export class OutboxStore {
   items: OutboxItem[] = [];
   dispose: () => void;
@@ -28,7 +24,7 @@ export class OutboxStore {
   enqueue(chatId: string, text: string, opts: { clientId?: string; createdAt?: number; attachment?: Attachment } = {}): OutboxItem {
     const item: OutboxItem = { clientId: opts.clientId ?? Crypto.randomUUID(), chatId, text, createdAt: opts.createdAt ?? Date.now(), status: 'pending', attempts: 0, ...(opts.attachment ? { attachment: opts.attachment } : {}) };
     this.items.push(item);
-    return this.items[this.items.length - 1]!;   // the observable proxy, not the plain input
+    return this.items[this.items.length - 1]!;
   }
   markSending(id: string) { const it = this.find(id); it.status = 'sending'; it.attempts += 1; }
   markPending(id: string) { const it = this.find(id); it.status = 'pending'; it.error = undefined; }

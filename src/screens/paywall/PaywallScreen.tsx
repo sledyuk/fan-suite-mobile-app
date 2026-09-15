@@ -11,11 +11,6 @@ import { useStores } from '@/hooks/useStores';
 import { formatSchmeckles } from '@/lib/money';
 import { colors, radii, spacing } from '@/theme/tokens';
 
-/**
- * FanSuite Pro paywall in the grouped-list language. States: idle → purchasing
- * (pill busy, taps ignored) → awaiting confirmation (honest amber) → active.
- * Cancel and failure leave any valid plan untouched. Simulated billing.
- */
 const PaywallScreen = observer(function PaywallScreen() {
   const { billing } = useStores();
   const reduced = useReducedMotion();

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, type PressableProps, type StyleProp, type ViewSt
 import { colors, radii } from '@/theme/tokens';
 
 interface Props extends Omit<PressableProps, 'style'> {
-  accessibilityLabel: string; // required: every icon-only control must be readable
+  accessibilityLabel: string;
   size?: number;
   filled?: boolean;
   children: React.ReactNode;

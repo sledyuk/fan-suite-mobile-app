@@ -3,7 +3,6 @@ import { defaultFaults, type Faults } from '@/services/mock/faults';
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { persistSlice } from './persist';
 
-/** Simulated network state + fault switches. Persisted so "force-quit while offline" reopens offline. */
 export class ConnectivityStore {
   online = true;
   faults: Faults = defaultFaults();

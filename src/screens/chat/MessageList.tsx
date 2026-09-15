@@ -19,27 +19,18 @@ interface Props {
 const keyExtractor = (r: Row) => r.key;
 const getItemType = (r: Row) => r.type;
 
-/**
- * Not inverted: LegendList anchors content at the bottom (`alignItemsAtEnd`)
- * and keeps the viewport stable while older pages are prepended
- * (`maintainVisibleContentPosition`), which avoids the transform hacks an
- * inverted FlatList needs.
- */
 export function MessageList({ rows, peer, loadingOlder, onLoadOlder, onRetry, onDiscard }: Props) {
   const reduced = useReducedMotion();
   const listRef = useRef<LegendListRef>(null);
   const last = rows.at(-1);
   const lastKey = last?.key;
   const lastIsMine = last?.type === 'outbox' || (last?.type === 'msg' && last.mine);
-  // A send of ours always brings the thread to the bottom (standard chat UX), even if the user had scrolled up.
   useEffect(() => {
     if (!lastIsMine) return;
-    // Defer past the row's first layout, then once more after the estimate settles.
     const t1 = requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: !reduced }));
     const t2 = setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 250);
     return () => { cancelAnimationFrame(t1); clearTimeout(t2); };
   }, [lastKey, lastIsMine, reduced]);
-  // First paint: item sizes are estimates until laid out, so pin to the end again once real sizes are in.
   const hadRows = useRef(false);
   useEffect(() => {
     if (hadRows.current || rows.length === 0) return;

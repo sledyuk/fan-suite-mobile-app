@@ -1,6 +1,3 @@
-// Design tokens measured from the FanSuite Figma mockups.
-// Source of truth: docs/context/04-design-tokens.md. Values map onto the
-// Tailwind zinc/neutral scale, which is what the web app appears to use.
 export const colors = {
   primary: '#5863DE',
   primaryPressed: '#545ED1',
@@ -34,7 +31,6 @@ export const colors = {
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 40 } as const;
 
-// iOS 26 favours larger, concentric corners: an inner element's radius = outer radius - padding.
 export const radii = { sm: 6, md: 8, lg: 10, card: 14, xl: 16, sheet: 30 } as const;
 
 export const fonts = {

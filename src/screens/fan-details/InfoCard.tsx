@@ -12,7 +12,6 @@ interface Props {
   style?: ViewStyle;
 }
 
-/** Bordered card from the Fan Details mockup: optional leading icon, title row with a pencil, free content. */
 export function InfoCard({ icon, title, editable, right, children, style }: Props) {
   return (
     <View style={[styles.card, style]}>

@@ -2,7 +2,6 @@ import { Check } from '@/components/icons';
 import { StyleSheet, View } from 'react-native';
 import { colors, radii } from '@/theme/tokens';
 
-/** Presentational 20pt checkbox; the parent row owns the press. */
 export function Checkbox({ checked }: { checked: boolean }) {
   return (
     <View style={[styles.box, checked && styles.checked]} accessibilityElementsHidden>

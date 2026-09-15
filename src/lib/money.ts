@@ -1,7 +1,3 @@
-/**
- * Schmeckles: the demo currency (Rick and Morty). No real glyph exists, so we
- * use a currency code after the amount, the way CHF or SEK are written.
- */
 export const CURRENCY_CODE = 'SCH';
 export const CURRENCY_NAME = 'Schmeckles';
 

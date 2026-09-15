@@ -5,7 +5,6 @@ import { AppText } from './AppText';
 
 interface Props {
   source?: number | string;
-  /** Used for the initials fallback and its color when `source` is missing. */
   name?: string;
   size?: number;
   online?: boolean;
@@ -26,7 +25,6 @@ export function Avatar({ source, name = '', size = 32, online }: Props) {
   const radius = size / 2;
   return (
     <View style={{ width: size, height: size }} accessibilityLabel={name || undefined}>
-      {/* Initials sit underneath; the image paints over them once cached (no fade: recycled list rows swap sources often), so offline/first paint still shows something. */}
       <View style={[styles.fallback, { width: size, height: size, borderRadius: radius, backgroundColor: colorFor(name) }]}>
         <AppText variant="name" color={colors.bg} style={{ fontSize: size * 0.4, lineHeight: size * 0.5 }}>
           {initialsFor(name)}

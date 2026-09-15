@@ -20,7 +20,6 @@ const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
   { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Success, backend confirms after 6 s', value: 'success_delayed' },
 ];
 
-/** Debug sheet in the language of Expo's dev menu: header, pill actions, grouped inset lists, tip, status. Local mock only. */
 const DevScreen = observer(function DevScreen() {
   const root = useStores();
   const insets = useSafeAreaInsets();

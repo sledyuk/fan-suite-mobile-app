@@ -6,7 +6,6 @@ interface Props extends TextProps {
   color?: string;
 }
 
-/** Text bound to the design tokens so screens never hardcode fonts or colors. */
 export function AppText({ variant = 'body', color = colors.textPrimary, style, ...rest }: Props) {
   return <Text {...rest} style={[type[variant], { color }, style]} />;
 }

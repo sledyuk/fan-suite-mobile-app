@@ -18,13 +18,6 @@ interface Props {
 
 const ICON = 16;
 
-/**
- * 60pt row. Left: 40pt avatar with presence. Middle: name, preview (handle lives in the thread header / fan details).
- * Right column: time on top, exactly one status mark below —
- * fan's unread count, or for our own last message: sending / delivered / seen (fan avatar) / failed.
- * Swipe right: pin. Swipe left: mark read/unread, mute.
- * Spec: docs/context/07-chat-row-states.html
- */
 export const ConversationRow = memo(function ConversationRow({ item, onPress, actions }: Props) {
   const { last, fan, unreadCount, online, pinned, muted } = item;
   const swipe = useRef<SwipeableMethods>(null);

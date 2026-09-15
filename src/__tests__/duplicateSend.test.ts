@@ -7,7 +7,6 @@ const CHAT = 'rick';
 type Server = new (...a: ConstructorParameters<typeof MockChatServer>) => MockChatServer;
 const setup = (Impl: Server) => { const faults: Faults = defaultFaults(); return { faults, server: new Impl(new MemoryKV(), () => faults, { seedCount: 0 }) }; };
 
-/** Send reaches the server, the response is lost, the user retries with the same clientId. */
 const lostResponseThenRetry = async (server: MockChatServer, faults: Faults) => {
   const msg = { chatId: CHAT, clientId: 'c1', text: 'hello', createdAt: 1 };
   faults.dropNextResponse = true;

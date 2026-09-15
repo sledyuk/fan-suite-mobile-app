@@ -7,7 +7,6 @@ import { AppText } from '@/components/AppText';
 import { useStores } from '@/hooks/useStores';
 import { colors, spacing } from '@/theme/tokens';
 
-/** Connectivity strip under the header: offline (amber) or syncing (primary). Nothing when all is well. */
 export const Banner = observer(function Banner() {
   const { connectivity } = useStores();
   const reduced = useReducedMotion();

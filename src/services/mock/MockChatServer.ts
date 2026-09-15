@@ -6,7 +6,7 @@ import { generateHistory } from './historyGenerator';
 import { pageOf } from './historySource';
 
 interface Thread {
-  messages: ServerMessage[];             // ascending by seq
+  messages: ServerMessage[];
   acceptedByClientId: Record<ClientId, ServerId>;
   nextSeq: number;
 }
@@ -15,18 +15,11 @@ const KEY = (chatId: string) => `chat.v1.${chatId}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface ServerOptions {
-  /** History size seeded on first access of a thread (a function lets the app decide: empty vs demo). */
   seedCount?: number | (() => number);
-  /** Seed per chat so each thread is a different deterministic conversation. */
   seedFor?: (chatId: string) => number;
-  /** Messages appended after the generated history when a thread is first created (the "recent" tail). */
   tailFor?: (chatId: string) => { authorId: 'fan' | 'creator'; text: string; createdAt: number }[];
 }
 
-/**
- * In-process stand-in for the chat backend. Owns message ids and order, persists
- * every accepted send to its own storage namespace, and is idempotent on clientId.
- */
 export class MockChatServer implements ChatApi {
   private threads = new Map<string, Thread>();
 
@@ -67,7 +60,6 @@ export class MockChatServer implements ChatApi {
     throw new SendError('BLOCKED', false, "You can't message this fan");
   }
 
-  /** Persist the message, then decide whether the client gets to see the response. */
   protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }): ServerMessage {
     const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: input.attachment?.kind ?? 'text', ...(input.attachment ? { attachment: input.attachment } : {}) };
     t.messages.push(msg);
@@ -85,7 +77,7 @@ export class MockChatServer implements ChatApi {
     this.maybeFail();
     const t = this.thread(input.chatId);
     const existing = t.acceptedByClientId[input.clientId];
-    if (existing) return t.messages.find((m) => m.id === existing)!;   // retry of an accepted send → same message
+    if (existing) return t.messages.find((m) => m.id === existing)!;
     const msg = this.accept(input.chatId, t, input);
     t.acceptedByClientId[input.clientId] = msg.id;
     this.persist(input.chatId, t);
@@ -103,14 +95,12 @@ export class MockChatServer implements ChatApi {
     return pageOf(this.thread(chatId).messages, beforeSeq, limit);
   }
 
-  /** Seeding: append one message as either party with a fixed timestamp (server-side state only). */
   injectMessage(chatId: string, m: { authorId: 'fan' | 'creator'; text: string; createdAt: number }): ServerMessage {
     const t = this.thread(chatId);
     const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, seq: t.nextSeq++, authorId: m.authorId, text: m.text, createdAt: m.createdAt, kind: 'text' };
     t.messages.push(msg); this.persist(chatId, t); return msg;
   }
 
-  /** Dev panel: the fan writes while we are away. Not gated by faults (it is the server's own state). */
   injectIncoming(chatId: string, texts: string[]): ServerMessage[] {
     const t = this.thread(chatId);
     const out = texts.map((text) => { const m: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, seq: t.nextSeq++, authorId: 'fan', text, createdAt: Date.now(), kind: 'text' }; t.messages.push(m); return m; });

@@ -6,7 +6,6 @@ import { AppText } from '@/components/AppText';
 import { useStores } from '@/hooks/useStores';
 import { colors, radii, spacing } from '@/theme/tokens';
 
-/** The creator's plan at a glance: Free → Upgrade, Confirming…, or Pro with renewal date. */
 export const PlanCard = observer(function PlanCard() {
   const { billing } = useStores();
   const state = billing.isActive ? 'active' : billing.isAwaiting ? 'awaiting' : 'free';

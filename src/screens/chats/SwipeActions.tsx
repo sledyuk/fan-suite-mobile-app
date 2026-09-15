@@ -13,7 +13,6 @@ export interface SwipeAction {
 
 export const ACTION_WIDTH = 76;
 
-/** Full-height coloured action buttons revealed behind a swiped row. */
 export function SwipeActions({ actions, onDone }: { actions: SwipeAction[]; onDone: () => void }) {
   return (
     <View style={styles.wrap}>

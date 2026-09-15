@@ -5,17 +5,9 @@ import type { RootStore } from '@/stores/RootStore';
 
 const BACKOFF_MS = [500, 1500, 4000];
 
-/**
- * Sends pending outbox items one at a time, in local order, while online and
- * not syncing. Network errors go back to pending (retry with backoff, then
- * failed-but-recoverable); typed server errors become failed with their reason.
- * A failed item blocks everything queued behind it (per chat) until the user
- * retries or deletes it, so local order is never violated.
- */
 export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
   const { outbox, connectivity } = root;
   if (!connectivity.online || connectivity.syncing || outbox.sendingOne) return;
-  // First pending item whose chat has no failed item ahead of it (queue position = local order).
   const blocked = new Set<string>();
   let next: typeof outbox.items[number] | undefined;
   for (const i of outbox.items) {
@@ -34,8 +26,7 @@ export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
       if (err.code !== 'NETWORK') { outbox.markFailed(next.clientId, { code: err.code, recoverable: err.recoverable, message: err.message }); return; }
       outbox.markPending(next.clientId);
       const attempts = outbox.items.find((i) => i.clientId === next.clientId)?.attempts ?? 1;
-      if (!connectivity.online) return;                                   // wait for reconnect
-      // attempts counts sends so far (1 after the first). Retry up to BACKOFF_MS.length more times, then give up.
+      if (!connectivity.online) return;
       if (attempts > BACKOFF_MS.length) outbox.markFailed(next.clientId, { code: 'NETWORK', recoverable: true, message: "Couldn't reach the server" });
       else setTimeout(() => void drainOnce(root, api), BACKOFF_MS[attempts - 1]);
     });

@@ -12,7 +12,6 @@ type Props =
   | { kind: 'suite'; suite: Suite; selected: boolean; onToggle: () => void }
   | { kind: 'fan'; id: string; fan: Participant; selected: boolean; onToggle: () => void };
 
-/** Bordered 64pt card row with a leading checkbox; selected = primary border + tint (Figma). */
 export const PickerRow = memo(function PickerRow(props: Props) {
   const { selected, onToggle } = props;
   const label = props.kind === 'suite' ? `${props.suite.name}, ${props.suite.fanIds.length} fans` : `${props.fan.name} ${props.fan.handle}`;

@@ -15,11 +15,6 @@ interface Props {
 
 interface Sent { id: string; text: string; at: number }
 
-/**
- * "Separate message to (N) users": one text, delivered into each recipient's own
- * thread. For now the send is local; the outbox step turns it into N queued sends
- * with their own client IDs so each gets offline/retry/idempotency for free.
- */
 export default function BroadcastScreen({ fanIds }: Props) {
   const insets = useSafeAreaInsets();
   const { demo } = useStores();

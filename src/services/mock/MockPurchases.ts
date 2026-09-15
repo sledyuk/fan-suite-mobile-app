@@ -10,10 +10,6 @@ export const PRO: Product = {
   perks: ['Message many fans at once', 'AI summaries in Fan details', 'Priority payouts'],
 };
 
-/**
- * Stand-in for StoreKit / Play Billing: answers immediately with the outcome
- * chosen in the dev sheet, and remembers the last receipt so `restore()` works.
- */
 export class MockPurchases implements PurchaseService {
   constructor(private config: () => { outcome: PurchaseOutcome }, private storage: KeyValueStorage) {}
 

@@ -1,4 +1,5 @@
 import type { BackendBilling, PurchaseService } from '@/services/api/BillingApi';
+import { configure } from 'mobx';
 import type { ServerMessage } from '@/services/api/types';
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { BillingStore } from './BillingStore';
@@ -7,6 +8,8 @@ import { ConnectivityStore } from './ConnectivityStore';
 import { DemoDataStore } from './DemoDataStore';
 import { OutboxStore } from './OutboxStore';
 import { SettingsStore } from './SettingsStore';
+
+configure({ enforceActions: 'never' });
 
 export class RootStore {
   connectivity: ConnectivityStore;
@@ -25,11 +28,6 @@ export class RootStore {
     this.settings = new SettingsStore(client);
   }
 
-  /**
-   * Every server message enters the client here. If it carries a clientId that is
-   * still in the outbox (response lost, or sync raced the send), the outbox item is
-   * done: the server has it. Prevents a message showing as both sent and sending.
-   */
   applyServerMessages(chatId: string, msgs: ServerMessage[], opts: { page?: { hasMore: boolean } } = {}) {
     const t = this.chat.thread(chatId);
     if (opts.page) t.setPage(msgs, opts.page.hasMore); else t.upsert(msgs);

@@ -7,7 +7,6 @@ import { colors, radii, spacing } from '@/theme/tokens';
 
 const MAX_W = 240;
 
-/** Photo or video inside a bubble. Videos show a poster-less tile with a play badge and duration (no playback in this exercise). */
 export function AttachmentView({ attachment }: { attachment: Attachment }) {
   const ratio = attachment.width && attachment.height ? attachment.width / attachment.height : 4 / 3;
   const w = MAX_W, h = Math.min(320, Math.round(w / ratio));

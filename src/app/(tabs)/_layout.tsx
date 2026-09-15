@@ -3,13 +3,6 @@ import { observer } from "mobx-react-lite";
 import { useStores } from "@/hooks/useStores";
 import { colors } from "@/theme/tokens";
 
-/**
- * Native tab bar. Icons are the Figma glyphs (assets/icons/tabs/src) rendered to
- * template PNGs by `scripts/render-tab-icons.mjs`; the tab bar tints them for the
- * selected state. The search tab keeps the system glyph so iOS 26 can morph it.
- * On iOS 26 it is Liquid Glass, minimizes while scrolling down,
- * and the `search` role splits into its own glass button on the right.
- */
 const TabsLayout = observer(function TabsLayout() {
   const unread = useStores().demo.unreadTotal;
   return (

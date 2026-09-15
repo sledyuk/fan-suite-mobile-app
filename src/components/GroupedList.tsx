@@ -3,10 +3,6 @@ import { colors, radii, spacing } from '@/theme/tokens';
 import { AppText } from './AppText';
 import type { IconComponent } from './icons';
 
-/**
- * iOS grouped-inset list language (as in Expo's dev menu): uppercase section
- * label, rounded #F2F2F7 group, 56pt rows with icon / label / hint / accessory.
- */
 export const GROUP_BG = '#F2F2F7';
 
 export function Section({ title, children, style }: { title?: string; children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
@@ -41,7 +37,7 @@ export function Row({ icon: Icon, leading, label, hint, right, onPress, disabled
       accessibilityLabel={hint ? `${label}. ${hint}` : label}
       style={({ pressed }) => [styles.row, !last && styles.rowBorder, selected && styles.rowSelected, pressed && onPress && styles.rowPressed, disabled && { opacity: 0.45 }]}
     >
-      {leading ?? (Icon && <Icon size={20} color={tone === colors.textPrimary ? colors.textSecondary : tone} />)}
+      {leading ?? (Icon ? <View style={styles.iconSlot}><Icon size={20} color={tone === colors.textPrimary ? colors.textSecondary : tone} /></View> : null)}
       <View style={styles.rowText}>
         <AppText color={tone}>{label}</AppText>
         {hint && <AppText variant="time" color={colors.textMuted}>{hint}</AppText>}
@@ -60,7 +56,6 @@ export function KV({ label, value, last }: { label: string; value: string; last?
   );
 }
 
-/** Big pill action (Expo's "Reload" / "Go home"). `primary` fills it with the brand colour. */
 export function Pill({ icon: Icon, label, onPress, disabled, primary, loading }: { icon?: IconComponent; label: string; onPress: () => void; disabled?: boolean; primary?: boolean; loading?: boolean }) {
   const fg = primary ? colors.bg : colors.textPrimary;
   return (
@@ -89,6 +84,7 @@ const styles = StyleSheet.create({
   rowSelected: { backgroundColor: colors.primarySoft },
   rowPressed: { backgroundColor: colors.divider },
   rowText: { flex: 1, gap: 1 },
+  iconSlot: { width: 24, alignItems: 'center' },
   kv: { flexShrink: 1, textAlign: 'right' },
   pill: { flex: 1, height: 60, borderRadius: radii.card, backgroundColor: GROUP_BG, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   pillPrimary: { backgroundColor: colors.primary },

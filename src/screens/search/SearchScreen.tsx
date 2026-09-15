@@ -13,7 +13,6 @@ import { colors, spacing } from '@/theme/tokens';
 
 const keyExtractor = (c: Conversation) => c.id;
 
-/** Search tab: native header search bar (iOS 26 shows it in the split tab-bar search button). */
 const SearchScreen = observer(function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
@@ -33,7 +32,6 @@ const SearchScreen = observer(function SearchScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: 'Search' }} />
-      {/* Native search field; on iOS 26 it lives in the split search tab and morphs out of the tab bar. */}
       <Stack.SearchBar
         placement="automatic"
         placeholder="Search messages"
@@ -47,6 +45,7 @@ const SearchScreen = observer(function SearchScreen() {
         data={data}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        recycleItems
         estimatedItemSize={60}
         keyboardDismissMode="on-drag"
         contentInsetAdjustmentBehavior="automatic"

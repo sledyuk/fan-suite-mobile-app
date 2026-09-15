@@ -14,7 +14,6 @@ interface Props {
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
-/** Presented as a native iOS sheet (see app/_layout.tsx). Read-only: a creator views a fan's details but cannot edit them. */
 export default function FanDetailsScreen({ conversation }: Props) {
   const { fan, profile, online } = conversation;
   return (
