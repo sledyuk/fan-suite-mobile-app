@@ -21,10 +21,10 @@ src/
   components/              Avatar, Badge, PrimaryButton, IconButton, Pill, Text (token-aware)
   services/api/            ChatApi.ts, BillingApi.ts (interfaces + typed errors)
   services/mock/           mockChatServer.ts, naiveChatServer.ts (bug repro), mockPurchases.ts, mockBackendBilling.ts, faults.ts, historyGenerator.ts
-  stores/                  chatStore, outboxStore, billingStore, connectivityStore
-  workers/                 outboxDrainer.ts, syncWorker.ts
-  hooks/                   useThread, useSend, useRetry, useEntitlement, usePurchase, useConnectivity
-  storage/                 mmkv.ts (clientStorage, mockServerStorage — separate instances), zustandMmkv.ts
+  stores/                  ChatStore, OutboxStore, BillingStore, ConnectivityStore (MobX classes), RootStore
+  workers/                 outboxDrainer.ts, syncWorker.ts (MobX reactions)
+  hooks/                   useStores (context), useThread (computed view rows)
+  storage/                 kvStorage.ts (KeyValueStorage interface; client + mock-server namespaces over expo-sqlite/kv-store; in-memory impl for tests)
   theme/                   tokens.ts, typography.ts
   __tests__/               duplicateSend.test.ts, restartRecovery.test.ts, delayedConfirmation.test.ts
 ```
@@ -42,13 +42,13 @@ interface Entitlement { productId; status: 'none'|'awaiting_confirmation'|'activ
 - `ChatApi`: `send({clientId,text})`, `sync(sinceSeq)`, `getPage(beforeSeq, limit)`.
 - `MockChatServer`: persists `{messages: ServerMessage[], acceptedByClientId: Record<ClientId, ServerId>, nextSeq}` in mockServerStorage. `send` is idempotent: if clientId known → return existing message. Faults (from `faults.ts`, held in connectivityStore): `offline` → throw NETWORK; `dropNextResponse` → accept + persist, then throw NETWORK (the lost-response case); `failNextSend: 'RATE_LIMITED'|'BLOCKED'`; `latencyMs`.
 - `NaiveChatServer`: same but no acceptedByClientId → reproduces duplicate. Used only by the failing test and dev panel toggle "use buggy server" for the walkthrough.
-- `historyGenerator(seed, 50_000)`: deterministic (mulberry32), short texts, alternating authors, seeded into server store on first launch or reset.
+- `historyGenerator(seed, 50_000)`: deterministic (mulberry32). Content is a Rick and Morty parody script (`script.ts`, ~60 paraphrased fan/creator exchanges) cycled with seeded variation; creator = Rick Sanchez @rickc137, fan = Morty. Seeded into server store on first launch or reset.
 - `MockPurchases` (`purchase(productId)`, `restore()`): outcome selected in dev panel: success | cancelled | failed | success-delayed-confirm. Returns `{receiptId}`.
 - `MockBackendBilling` (`confirm(receiptId)`): resolves `active` after `confirmDelayMs` (0 or 5000), idempotent per receiptId.
 
-## 5. Stores
+## 5. Stores (MobX, `makeAutoObservable`; persisted slices written by a `reaction` on every change, hydrated in constructor)
 - `connectivityStore`: `online`, fault flags, `setOnline`. Persisted (so force-quit while offline stays offline in demo).
-- `outboxStore` (persisted, sync MMKV): `items: OutboxItem[]` in insertion order; `enqueue(text)` writes to storage *before* returning (MMKV set is sync; store persist middleware writes on every change); `markSending/markConfirmed(clientId)/markFailed`; `retry(clientId)`.
+- `OutboxStore` (persisted, sync kv-store): `items: OutboxItem[]` in insertion order; `enqueue(text)` writes to storage *before* returning (MMKV set is sync; store persist middleware writes on every change); `markSending/markConfirmed(clientId)/markFailed`; `retry(clientId)`.
 - `chatStore`: `byId: Record<ServerId, ServerMessage>`, `orderedIds` sorted by seq, `lastSeq`, `oldestLoadedSeq`, `hasMore`; `upsert(msgs[])` dedupes by id and re-sorts only if a new id is inserted (no jumps on repeats). Confirmed history not persisted (re-paged from server on launch) except `lastSeq`.
 - `billingStore` (persisted): `entitlement`, `purchaseInFlight: boolean`, `processedReceipts: Set`; `startPurchase()` no-ops if in flight; on purchase success → `awaiting_confirmation` + call backend confirm; on confirm → `active` (dedupe by receiptId); failure/cancel → leave existing entitlement untouched.
 
@@ -60,13 +60,13 @@ interface Entitlement { productId; status: 'none'|'awaiting_confirmation'|'activ
 `[...confirmed messages by seq ascending, ...outbox items in local order]` mapped to a `Row` union; list is inverted, so data is reversed once. Rows keyed by `serverId ?? clientId`. Day separators computed in the same pass. Pagination: `onEndReached` (top, since inverted) → `getPage(oldestLoadedSeq)` 50 at a time with a loading footer.
 
 ## 8. UI (see docs/context/04-design-tokens.md)
-Header (back, "Chat with", kebab → dev panel; avatar/name/handle + EntitlementBadge or Subscribe pill) → Banner slot (offline / syncing / none) → MessageList (FlashList inverted) → Composer (or LockedComposer when not entitled) with counter + "Available messages" line. Keyboard via keyboard-controller `KeyboardAvoidingView` replacement; safe areas via safe-area-context. Reanimated: banner slide, bubble fade-in, send button press scale, status transitions; all gated on `useReducedMotion`.
+Header (back, "Chat with", kebab → dev panel; avatar/name/handle + EntitlementBadge or Subscribe pill) → Banner slot (offline / syncing / none) → MessageList (LegendList, not inverted, `alignItemsAtEnd` + `maintainScrollAtEnd` + `onStartReached` for older pages) → Composer (or LockedComposer when not entitled) with counter + "Available messages" line. Keyboard via RN `KeyboardAvoidingView` (behavior padding on iOS) + safe-area insets; safe areas via safe-area-context. Reanimated: banner slide, bubble fade-in, send button press scale, status transitions; all gated on `useReducedMotion`.
 Paywall route: product card, price, state pill, CTA (disabled + spinner while in flight), Restore, "Simulated billing" tag, error text. Dev route: switches for offline, drop next response, fail next send (rate-limited / blocked), inject 4 incoming, purchase outcome picker, confirm delay, buggy server toggle, Reset all (clears both storages + reseeds history).
 
 ## 9. Error handling
 Typed `SendError` from services; stores map to UI copy: NETWORK "Waiting for connection", RATE_LIMITED "Too many messages, retry in a moment" (retry), PAYMENT_REQUIRED "Subscribe to send" (opens paywall), BLOCKED "You can't message this creator" (no retry). Purchase errors: cancelled → toast, failed → inline error + retry, confirmation timeout (>15s) → "Still confirming, we'll keep checking" and a manual "Check again".
 
-## 10. Tests (Jest, jest-expo preset, MMKV mocked with in-memory Map)
+## 10. Tests (Jest, jest-expo preset, `MemoryKV` implementation of KeyValueStorage; restart = new RootStore over same MemoryKV)
 1. `duplicateSend`: naive server + dropNextResponse → send → retry → expect thread length 2 (FAILS); same with MockChatServer → expect 1 (PASSES). Both assertions kept, naive one as `test.failing`.
 2. `restartRecovery`: offline, enqueue 3 → new store instances over same storage → 3 pending in order → inject 4 incoming on server → go online → thread = history + 4 incoming + 3 sent, no dups, seq monotonic.
 3. `delayedConfirmation`: purchase success with 5s confirm delay (fake timers) → entitlement `awaiting_confirmation`, composer locked → advance → `active`; duplicate confirm event → no change; then failed unrelated purchase → still `active`; double tap → one purchase call.
