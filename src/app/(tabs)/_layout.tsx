@@ -19,8 +19,8 @@ const TabsLayout = observer(function TabsLayout() {
         <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "house", selected: "house.fill" }} md={{ default: "home", selected: "home" }} />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="chats">
-        <NativeTabs.Trigger.Label>Chats</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="messages">
+        <NativeTabs.Trigger.Label>Messages</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "bubble.left", selected: "bubble.left.fill" }} md={{ default: "chat_bubble_outline", selected: "chat_bubble" }} />
         {unread > 0 && <NativeTabs.Trigger.Badge>{String(unread)}</NativeTabs.Trigger.Badge>}
       </NativeTabs.Trigger>

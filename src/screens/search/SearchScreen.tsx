@@ -35,7 +35,7 @@ const SearchScreen = observer(function SearchScreen() {
       <Stack.Screen
         options={{
           title: 'Search',
-          headerSearchBarOptions: { placeholder: 'Search conversations', autoCapitalize: 'none', hideWhenScrolling: false, onChangeText: (e) => setQuery(e.nativeEvent.text) },
+          headerSearchBarOptions: { placeholder: 'Search messages', autoCapitalize: 'none', hideWhenScrolling: false, onChangeText: (e) => setQuery(e.nativeEvent.text) },
         }}
       />
       <LegendList

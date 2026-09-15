@@ -28,7 +28,7 @@ const ChatListScreen = observer(function ChatListScreen() {
     <View style={styles.screen}>
       <Stack.Screen
         options={{
-          title: 'Chats',
+          title: 'Messages',
           headerRight: () => (
             <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
               <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
@@ -46,7 +46,7 @@ const ChatListScreen = observer(function ChatListScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.lg }}
         ListEmptyComponent={
-          <EmptyState icon={MessageCircle} title="No conversations yet" body="When fans message you, their chats show up here. Pull down to refresh." />
+          <EmptyState icon={MessageCircle} title="No messages yet" body="When fans message you, their conversations show up here. Pull down to refresh." />
         }
       />
     </View>

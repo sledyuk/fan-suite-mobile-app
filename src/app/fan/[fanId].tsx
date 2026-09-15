@@ -6,7 +6,7 @@ import FanDetailsScreen from '@/screens/fan-details';
 const FanDetailsRoute = observer(function FanDetailsRoute() {
   const { fanId } = useLocalSearchParams<{ fanId: string }>();
   const conversation = useStores().demo.find(fanId);
-  if (!conversation) return <Redirect href="/chats" />;
+  if (!conversation) return <Redirect href="/messages" />;
   return <FanDetailsScreen conversation={conversation} />;
 });
 

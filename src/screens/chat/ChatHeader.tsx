@@ -19,9 +19,9 @@ export function ChatHeader({ peer, online, onBack, onDetails }: Props) {
   return (
     <View style={[styles.wrap, { paddingTop: insets.top }]}>
       <View style={styles.topRow}>
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back to chats" hitSlop={8} style={({ pressed }) => [styles.back, pressed && { opacity: 0.6 }]}>
+        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back to messages" hitSlop={8} style={({ pressed }) => [styles.back, pressed && { opacity: 0.6 }]}>
           <ArrowLeft size={22} color={colors.primary} strokeWidth={2} />
-          <AppText variant="body" color={colors.primary} style={styles.backLabel}>Chats</AppText>
+          <AppText variant="body" color={colors.primary} style={styles.backLabel}>Messages</AppText>
         </Pressable>
         <AppText variant="title" color={colors.textHeading} style={styles.title}>Chat with</AppText>
         <View style={styles.right} />

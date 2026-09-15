@@ -55,7 +55,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
 
   const go = () => {
     if (needsPro) { router.push('/paywall'); return; }
-    if (count === 1) { const [id] = selected; router.dismissTo('/chats'); router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }); return; }
+    if (count === 1) { const [id] = selected; router.dismissTo('/messages'); router.push({ pathname: '/chat/[chatId]', params: { chatId: id } }); return; }
     router.push({ pathname: '/new-message/broadcast', params: { fans: [...selected].join(',') } });
   };
 

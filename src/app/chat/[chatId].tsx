@@ -6,7 +6,7 @@ import ChatScreen from '@/screens/chat';
 const ChatRoute = observer(function ChatRoute() {
   const { chatId } = useLocalSearchParams<{ chatId: string }>();
   const conversation = useStores().demo.find(chatId);
-  if (!conversation) return <Redirect href="/chats" />;
+  if (!conversation) return <Redirect href="/messages" />;
   return <ChatScreen conversation={conversation} />;
 });
 
