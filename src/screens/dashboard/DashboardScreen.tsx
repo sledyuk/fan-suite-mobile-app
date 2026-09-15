@@ -1,10 +1,8 @@
 import { Stack } from 'expo-router';
-import { LayoutDashboard } from 'lucide-react-native';
 import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { EmptyState } from '@/components/EmptyState';
 import { useStores } from '@/hooks/useStores';
 import { formatSchmeckles } from '@/lib/money';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -27,7 +25,6 @@ const DashboardScreen = observer(function DashboardScreen() {
           <Tile label="Sending" value={String(outbox.items.filter((i) => i.status !== 'failed').length)} />
           <Tile label="Failed sends" value={String(outbox.items.filter((i) => i.status === 'failed').length)} />
         </View>
-        {!demo.seeded && <EmptyState icon={LayoutDashboard} title="Your studio is empty" body="Earnings and fan activity appear here once fans subscribe." />}
       </ScrollView>
     </View>
   );
