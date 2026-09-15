@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { openConversation } from '@/screens/chats/ChatListScreen';
 import { ConversationRow } from '@/screens/chats/ConversationRow';
+import { useConversations } from '@/screens/chats/useConversations';
 import { CONVERSATIONS, type Conversation } from '@/services/mock/conversations';
 import { colors, spacing } from '@/theme/tokens';
 
@@ -15,6 +16,7 @@ const keyExtractor = (c: Conversation) => c.id;
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const { actions } = useConversations();
 
   const data = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -23,8 +25,8 @@ export default function SearchScreen() {
   }, [query]);
 
   const renderItem = useCallback(
-    ({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={openConversation} />,
-    [],
+    ({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={openConversation} actions={actions} />,
+    [actions],
   );
 
   return (

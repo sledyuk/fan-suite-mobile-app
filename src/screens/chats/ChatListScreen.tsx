@@ -1,6 +1,6 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack, router } from 'expo-router';
-import { Plus, SlidersHorizontal } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,10 +16,10 @@ export const openConversation = (id: string) => router.push({ pathname: '/chat/[
 
 export default function ChatListScreen() {
   const insets = useSafeAreaInsets();
-  const { items, refreshing, refresh } = useConversations();
+  const { items, refreshing, refresh, actions } = useConversations();
   const renderItem = useCallback(
-    ({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={openConversation} />,
-    [],
+    ({ item }: LegendListRenderItemProps<Conversation>) => <ConversationRow item={item} onPress={openConversation} actions={actions} />,
+    [actions],
   );
 
   return (
@@ -28,14 +28,9 @@ export default function ChatListScreen() {
         options={{
           title: 'Chats',
           headerRight: () => (
-            <View style={styles.headerButtons}>
-              <GlassIconButton accessibilityLabel="Filter conversations">
-                <SlidersHorizontal size={18} color={colors.textPrimary} strokeWidth={2} />
-              </GlassIconButton>
-              <GlassIconButton accessibilityLabel="New message">
-                <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
-              </GlassIconButton>
-            </View>
+            <GlassIconButton accessibilityLabel="New message">
+              <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
+            </GlassIconButton>
           ),
         }}
       />
@@ -46,7 +41,6 @@ export default function ChatListScreen() {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         estimatedItemSize={60}
-        recycleItems
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.lg }}
       />
@@ -56,5 +50,4 @@ export default function ChatListScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  headerButtons: { flexDirection: 'row', gap: spacing.sm },
 });

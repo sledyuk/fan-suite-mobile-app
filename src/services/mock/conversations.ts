@@ -36,6 +36,8 @@ export interface Conversation {
   /** Fan messages the creator has not opened yet. */
   unreadCount: number;
   online: boolean;
+  pinned?: boolean;
+  muted?: boolean;
 }
 
 const NOW = Date.UTC(2026, 8, 15, 11, 0, 0);
