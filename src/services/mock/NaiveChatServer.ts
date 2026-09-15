@@ -5,7 +5,7 @@ export class NaiveChatServer extends MockChatServer {
     await this.gate();
     this.maybeFail();
     const t = this.thread(input.chatId);
-    const msg = this.accept(input.chatId, t, input);
+    const msg = this.accept(input.chatId, t, input, false);
     this.maybeDropResponse();
     return msg;
   }

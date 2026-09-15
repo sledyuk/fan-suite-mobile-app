@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { useStores } from '@/hooks/useStores';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import { formatTime } from '@/lib/time';
@@ -20,6 +21,7 @@ type Props =
 
 export function Bubble(props: Props) {
   const reduced = useReducedMotion();
+  const { billing } = useStores();
   const entering = reduced ? undefined : FadeInDown.duration(180);
 
   if (props.kind === 'outbox') {
@@ -28,7 +30,7 @@ export function Bubble(props: Props) {
     const err = item.error;
     const onTap = !failed ? undefined
       : err?.recoverable !== false ? () => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onRetry(item.clientId); }
-      : err.code === 'PAYMENT_REQUIRED' ? () => router.push('/paywall')
+      : err.code === 'PAYMENT_REQUIRED' ? () => (billing.isActive ? onRetry(item.clientId) : router.push('/paywall'))
       : undefined;
     const bubble = (
       <Animated.View entering={entering} style={[styles.row, styles.rowMine]}>
@@ -41,12 +43,12 @@ export function Bubble(props: Props) {
           onPress={onTap}
           disabled={!onTap}
           accessibilityRole={onTap ? 'button' : undefined}
-          accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item)}. Swipe left to delete.` : `Sending. ${item.text}`}
+          accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item, billing.isActive)}. Swipe left to delete.` : `Sending. ${item.text}`}
           style={({ pressed }) => [styles.bubble, styles.mine, !failed && styles.pending, pressed && onTap && styles.pressed]}
         >
           {item.attachment && <AttachmentView attachment={item.attachment} />}
           {!!item.text && <AppText>{item.text}</AppText>}
-          <StatusLine item={item} />
+          <StatusLine item={item} hasAccess={billing.isActive} />
         </Pressable>
       </Animated.View>
     );

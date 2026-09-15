@@ -9,11 +9,14 @@ export const MAX_LENGTH = 400;
 export function useChatActions(chatId: string) {
   const root = useStores();
 
-  const send = useCallback((text: string, attachment?: Attachment) => {
+  /** Returns false when the message could not be persisted; the composer then keeps the draft. */
+  const send = useCallback((text: string, attachment?: Attachment): boolean => {
     const trimmed = text.trim().slice(0, MAX_LENGTH);
-    if (!trimmed && !attachment) return;
-    runInAction(() => root.outbox.enqueue(chatId, trimmed, { attachment }));
+    if (!trimmed && !attachment) return false;
+    try { runInAction(() => root.outbox.enqueue(chatId, trimmed, { attachment })); }
+    catch { void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); return false; }
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    return true;
   }, [root, chatId]);
 
   const retry = useCallback((clientId: string) => runInAction(() => root.outbox.retry(clientId)), [root]);

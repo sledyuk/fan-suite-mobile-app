@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { runInAction } from 'mobx';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,10 +18,17 @@ interface Sent { id: string; text: string; at: number }
 
 export default function BroadcastScreen({ fanIds }: Props) {
   const insets = useSafeAreaInsets();
-  const { demo } = useStores();
+  const { demo, outbox } = useStores();
   const fans = demo.conversations.filter((c) => fanIds.includes(c.id));
   const count = fans.length;
   const [sent, setSent] = useState<Sent[]>([]);
+  // Each fan gets a normal outbox item, so the broadcast is persisted, drained in order, retried and de-duplicated
+  // exactly like a message typed in that fan's chat.
+  const broadcast = (text: string) => {
+    try { runInAction(() => { for (const c of fans) outbox.enqueue(c.id, text); }); }
+    catch { return; }
+    setSent((s) => [...s, { id: `${Date.now()}`, text, at: Date.now() }]);
+  };
 
   return (
     <ModalLayout
@@ -43,7 +51,7 @@ export default function BroadcastScreen({ fanIds }: Props) {
         <ScrollView style={styles.fill} contentContainerStyle={styles.thread} keyboardDismissMode="interactive">
           {sent.length === 0 ? (
             <AppText variant="caption" color={colors.textMuted} style={styles.hint}>
-              Each person gets this as a private message from you. Replies land in their own chat.
+              Each person gets this as a private message from you, queued and delivered like any other send. Replies land in their own chat.
             </AppText>
           ) : (
             sent.map((m) => (
@@ -55,7 +63,7 @@ export default function BroadcastScreen({ fanIds }: Props) {
           )}
         </ScrollView>
         <View style={styles.composer}>
-          <Composer onSend={(text) => setSent((s) => [...s, { id: `${Date.now()}`, text, at: Date.now() }])} autoFocus />
+          <Composer onSend={broadcast} autoFocus />
         </View>
       </KeyboardAvoidingView>
     </ModalLayout>

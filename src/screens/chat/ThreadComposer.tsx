@@ -12,16 +12,21 @@ import { MAX_LENGTH } from './useChatActions';
 const QUICK = ['🔥', '❤️', '😍', '💋', '🥰', '😢', '😂', '👀', '🙏', '💜'];
 
 interface Props {
-  onSend: (text: string, attachment?: Attachment) => void;
+  onSend: (text: string, attachment?: Attachment) => boolean;
 }
 
 export function ThreadComposer({ onSend }: Props) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [saveError, setSaveError] = useState(false);
   const trimmed = text.trim();
   const canSend = !!trimmed || !!attachment;
-  const send = () => { if (!canSend) return; onSend(trimmed, attachment ?? undefined); setText(''); setAttachment(null); };
+  const send = () => {
+    if (!canSend) return;
+    if (!onSend(trimmed, attachment ?? undefined)) { setSaveError(true); return; }
+    setSaveError(false); setText(''); setAttachment(null);
+  };
   const attach = async () => { const a = await pickMedia(); if (a) setAttachment(a); };
 
   return (
@@ -71,7 +76,11 @@ export function ThreadComposer({ onSend }: Props) {
         </Pressable>
       </View>
 
-      <AppText variant="time" color={colors.textMuted} style={styles.counter}>{text.length}/{MAX_LENGTH}</AppText>
+      {saveError ? (
+        <AppText variant="time" color={colors.error} accessibilityLiveRegion="polite">Couldn't save this message on the device. Your text is kept, try again.</AppText>
+      ) : (
+        <AppText variant="time" color={colors.textMuted} style={styles.counter}>{text.length}/{MAX_LENGTH}</AppText>
+      )}
     </View>
   );
 }

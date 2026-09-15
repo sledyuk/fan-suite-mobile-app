@@ -4,7 +4,7 @@ import { AppText } from '@/components/AppText';
 import type { OutboxItem } from '@/services/api/types';
 import { colors, spacing } from '@/theme/tokens';
 
-export function StatusLine({ item }: { item: OutboxItem }) {
+export function StatusLine({ item, hasAccess = false }: { item: OutboxItem; hasAccess?: boolean }) {
   if (item.status !== 'failed') {
     return (
       <View style={styles.line} accessibilityLiveRegion="polite">
@@ -16,16 +16,16 @@ export function StatusLine({ item }: { item: OutboxItem }) {
   return (
     <View style={styles.line} accessibilityLiveRegion="assertive">
       <AppText variant="time" color={colors.error} style={styles.bold}>Not delivered</AppText>
-      <AppText variant="time" color={colors.textMuted}> · {hint(item)}</AppText>
+      <AppText variant="time" color={colors.textMuted}> · {hint(item, hasAccess)}</AppText>
     </View>
   );
 }
 
-export function hint(item: OutboxItem): string {
+export function hint(item: OutboxItem, hasAccess = false): string {
   const err = item.error;
   if (!err) return 'Tap to retry';
   if (err.recoverable) return 'Tap to retry';
-  if (err.code === 'PAYMENT_REQUIRED') return 'Tap to subscribe';
+  if (err.code === 'PAYMENT_REQUIRED') return hasAccess ? 'Tap to retry' : 'Tap to subscribe';
   return err.message;
 }
 

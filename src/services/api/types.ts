@@ -39,6 +39,8 @@ export interface OutboxItem {
   createdAt: number;
   status: 'pending' | 'sending' | 'failed';
   attempts: number;
+  /** Earliest time (ms) the drainer may try again after a network failure. */
+  nextAttemptAt?: number;
   error?: OutboxError;
   attachment?: Attachment;
 }

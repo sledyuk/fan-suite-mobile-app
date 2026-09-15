@@ -6,12 +6,23 @@ import { generateHistory } from './historyGenerator';
 import { pageOf } from './historySource';
 
 interface Thread {
+  /** Full in-memory history: deterministic seed followed by the persisted tail. */
   messages: ServerMessage[];
   acceptedByClientId: Record<ClientId, ServerId>;
   nextSeq: number;
+  /** How the seed was generated, so a restart can rebuild it instead of reading it back from storage. */
+  seed: { count: number; seed: number; endAt?: number };
 }
 
-const KEY = (chatId: string) => `chat.v1.${chatId}`;
+/** What actually hits storage: everything after the seed. The 50k seeded messages are never serialized. */
+interface PersistedThread {
+  tail: ServerMessage[];
+  acceptedByClientId: Record<ClientId, ServerId>;
+  nextSeq: number;
+  seed: Thread['seed'];
+}
+
+const KEY = (chatId: string) => `chat.v2.${chatId}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface ServerOptions {
@@ -29,13 +40,16 @@ export class MockChatServer implements ChatApi {
     let t = this.threads.get(chatId);
     if (!t) {
       const raw = this.storage.get(KEY(chatId));
-      if (raw) t = JSON.parse(raw) as Thread;
-      else {
+      if (raw) {
+        const p = JSON.parse(raw) as PersistedThread;
+        t = { messages: [...generateHistory(p.seed.count, p.seed.seed, p.seed.endAt), ...p.tail], acceptedByClientId: p.acceptedByClientId, nextSeq: p.nextSeq, seed: p.seed };
+      } else {
         const count = typeof this.opts.seedCount === 'function' ? this.opts.seedCount() : (this.opts.seedCount ?? 50_000);
         const tail = this.opts.tailFor?.(chatId) ?? [];
-        const seed = generateHistory(count, this.opts.seedFor?.(chatId) ?? 42, tail[0] ? tail[0].createdAt - 60_000 : undefined);
+        const seedParams = { count, seed: this.opts.seedFor?.(chatId) ?? 42, ...(tail[0] ? { endAt: tail[0].createdAt - 60_000 } : {}) };
+        const seed = generateHistory(seedParams.count, seedParams.seed, seedParams.endAt);
         const messages = [...seed, ...tail.map((m, i) => ({ id: `m_${chatId}_${seed.length + i + 1}`, seq: seed.length + i + 1, authorId: m.authorId, text: m.text, createdAt: m.createdAt, kind: 'text' as const }))];
-        t = { messages, acceptedByClientId: {}, nextSeq: messages.length + 1 };
+        t = { messages, acceptedByClientId: {}, nextSeq: messages.length + 1, seed: seedParams };
         this.persist(chatId, t);
       }
       this.threads.set(chatId, t);
@@ -43,7 +57,10 @@ export class MockChatServer implements ChatApi {
     return t;
   }
 
-  protected persist(chatId: string, t: Thread) { this.storage.set(KEY(chatId), JSON.stringify(t)); }
+  protected persist(chatId: string, t: Thread) {
+    const p: PersistedThread = { tail: t.messages.slice(t.seed.count), acceptedByClientId: t.acceptedByClientId, nextSeq: t.nextSeq, seed: t.seed };
+    this.storage.set(KEY(chatId), JSON.stringify(p));
+  }
 
   protected async gate() {
     const f = this.faults();
@@ -60,9 +77,14 @@ export class MockChatServer implements ChatApi {
     throw new SendError('BLOCKED', false, "You can't message this fan");
   }
 
-  protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }): ServerMessage {
+  /**
+   * Appends the message and, when `remember` is set, its clientId mapping, then commits both in ONE storage write.
+   * Two separate writes would leave a window where the message is durable but its duplicate protection is not.
+   */
+  protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }, remember = true): ServerMessage {
     const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: input.attachment?.kind ?? 'text', ...(input.attachment ? { attachment: input.attachment } : {}) };
     t.messages.push(msg);
+    if (remember) t.acceptedByClientId[input.clientId] = msg.id;
     this.persist(chatId, t);
     return msg;
   }
@@ -79,8 +101,6 @@ export class MockChatServer implements ChatApi {
     const existing = t.acceptedByClientId[input.clientId];
     if (existing) return t.messages.find((m) => m.id === existing)!;
     const msg = this.accept(input.chatId, t, input);
-    t.acceptedByClientId[input.clientId] = msg.id;
-    this.persist(input.chatId, t);
     this.maybeDropResponse();
     return msg;
   }
