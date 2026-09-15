@@ -30,6 +30,16 @@ const DevScreen = observer(function DevScreen() {
   const [buggy, setBuggy] = useState(container.buggyServer);
   const set = <K extends keyof Faults>(k: K, v: Faults[K]) => runInAction(() => connectivity.setFault(k, v));
   const counts = { pending: outbox.items.filter((i) => i.status === 'pending').length, sending: outbox.items.filter((i) => i.status === 'sending').length, failed: outbox.items.filter((i) => i.status === 'failed').length };
+  const convs = demo.conversations;
+  const stats = {
+    conversations: convs.length,
+    unreadChats: convs.filter((c) => c.unreadCount > 0).length,
+    unreadMessages: demo.unreadTotal,
+    online: convs.filter((c) => c.online).length,
+    mineLast: convs.filter((c) => c.last.from === 'creator').length,
+    seen: convs.filter((c) => c.last.from === 'creator' && c.last.status === 'seen').length,
+  };
+  const thread = chatId ? root.chat.thread(chatId) : null;
 
   return (
     <ModalLayout title="Debug controls" subtitle="Local mock only" onClose={() => router.back()}>
@@ -86,6 +96,9 @@ const DevScreen = observer(function DevScreen() {
         <AppText variant="time" color={colors.textMuted}>account {demo.seeded ? 'demo' : 'empty'} · online {String(connectivity.online)} · syncing {String(connectivity.syncing)}</AppText>
         <AppText variant="time" color={colors.textMuted}>outbox: {counts.pending} pending · {counts.sending} sending · {counts.failed} failed</AppText>
         <AppText variant="time" color={colors.textMuted}>plan: {billing.entitlement.status}{billing.entitlement.receiptId ? ` · ${billing.entitlement.receiptId.slice(-6)}` : ''}</AppText>
+        <AppText variant="time" color={colors.textMuted}>chats: {stats.conversations} · unread chats {stats.unreadChats} · unread messages {stats.unreadMessages} · online {stats.online}</AppText>
+        <AppText variant="time" color={colors.textMuted}>last message mine: {stats.mineLast} · seen by fan {stats.seen}</AppText>
+        {thread && <AppText variant="time" color={colors.textMuted}>this thread: {thread.orderedIds.length} loaded · lastSeq {thread.lastSeq} · server {container.server.messageCount(chatId!)} · outbox {outbox.forChat(chatId!).length}</AppText>}
       </View>
 
     </ModalLayout>

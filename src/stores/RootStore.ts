@@ -16,10 +16,10 @@ export class RootStore {
   constructor(client: KeyValueStorage, purchases: PurchaseService, backend: BackendBilling) {
     this.connectivity = new ConnectivityStore(client);
     this.outbox = new OutboxStore(client);
-    this.chat = new ChatStore();
+    this.chat = new ChatStore(client);
     this.billing = new BillingStore(client, purchases, backend);
     this.demo = new DemoDataStore(client);
   }
 
-  dispose() { this.connectivity.dispose(); this.outbox.dispose(); this.billing.dispose(); this.demo.dispose(); }
+  dispose() { this.connectivity.dispose(); this.outbox.dispose(); this.billing.dispose(); this.demo.dispose(); this.chat.dispose(); }
 }

@@ -31,7 +31,7 @@ export function useThread(chatId: string) {
 
   useEffect(() => {
     if (thread.loaded) { if (root.connectivity.online) void syncOnce(root, api); return; }
-    void loadPage(null);
+    void loadPage(null);   // cached messages (if any) are already visible; this refreshes and marks loaded
   }, [thread, loadPage, root, api]);
 
   const loadOlder = useCallback(() => {

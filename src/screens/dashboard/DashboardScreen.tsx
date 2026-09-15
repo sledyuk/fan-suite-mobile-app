@@ -13,7 +13,7 @@ import { PlanCard } from './PlanCard';
 
 const DashboardScreen = observer(function DashboardScreen() {
   const insets = useSafeAreaInsets();
-  const { demo } = useStores();
+  const { demo, outbox } = useStores();
   const online = demo.conversations.filter((c) => c.online).length;
   return (
     <View style={styles.screen}>
@@ -25,6 +25,8 @@ const DashboardScreen = observer(function DashboardScreen() {
           <Tile label="Balance" value={formatSchmeckles(demo.wallet.balance)} />
           <Tile label="Fans online" value={String(online)} />
           <Tile label="Unread" value={String(demo.unreadTotal)} />
+          <Tile label="Sending" value={String(outbox.items.filter((i) => i.status !== 'failed').length)} />
+          <Tile label="Failed sends" value={String(outbox.items.filter((i) => i.status === 'failed').length)} />
         </View>
         {!demo.seeded && <EmptyState icon={LayoutDashboard} title="Your studio is empty" body="Earnings and fan activity appear here once fans subscribe. Load the demo to see it populated." seedable />}
       </ScrollView>

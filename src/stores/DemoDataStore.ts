@@ -14,6 +14,8 @@ const EMPTY_WALLET: WalletState = { balance: 0, pendingPayout: 0, thisMonth: 0, 
  */
 export class DemoDataStore {
   seeded = false;
+  /** Thread currently on screen: incoming messages there are read immediately. Not persisted. */
+  activeChatId: string | null = null;
   conversations: Conversation[] = [];
   wallet: WalletState = EMPTY_WALLET;
   dispose: () => void;
@@ -42,6 +44,8 @@ export class DemoDataStore {
   }
   toggleRead(id: string) { this.patch(id, (c) => ({ unreadCount: c.unreadCount > 0 ? 0 : c.last.from === 'fan' ? 1 : 0 })); }
   markRead(id: string) { this.patch(id, () => ({ unreadCount: 0 })); }
+  bumpUnread(id: string, by = 1) { this.patch(id, (c) => ({ unreadCount: c.unreadCount + by })); }
+  setActiveChat(id: string | null) { this.activeChatId = id; if (id) this.markRead(id); }
   togglePin(id: string) { this.patch(id, (c) => ({ pinned: !c.pinned })); }
   toggleMute(id: string) { this.patch(id, (c) => ({ muted: !c.muted })); }
   /** Keep the list row in step with the thread: our own last message and its delivery state. */

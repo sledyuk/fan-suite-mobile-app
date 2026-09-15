@@ -1,5 +1,8 @@
 import { router } from 'expo-router';
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
+import { useEffect } from 'react';
+import { useStores } from '@/hooks/useStores';
 import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import type { Conversation } from '@/services/mock/conversations';
 import { colors } from '@/theme/tokens';
@@ -15,7 +18,13 @@ interface Props {
 }
 
 const ChatScreen = observer(function ChatScreen({ conversation }: Props) {
+  const { demo } = useStores();
   const { rows, loadOlder, loadingOlder } = useThread(conversation.id);
+  // While open, this thread is "read": clears the badge now and keeps new incoming read.
+  useEffect(() => {
+    runInAction(() => demo.setActiveChat(conversation.id));
+    return () => runInAction(() => demo.setActiveChat(null));
+  }, [demo, conversation.id]);
   const { send, retry, discard } = useChatActions(conversation.id);
   // Back falls through to the list when the thread was opened without history (push notification, reload).
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/chats'));

@@ -1,5 +1,5 @@
-import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
-import { useCallback } from 'react';
+import { LegendList, type LegendListRef, type LegendListRenderItemProps } from '@legendapp/list/react-native';
+import { useCallback, useEffect, useRef } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { Participant } from '@/services/mock/participants';
@@ -27,6 +27,14 @@ const getItemType = (r: Row) => r.type;
  */
 export function MessageList({ rows, peer, loadingOlder, onLoadOlder, onRetry, onDiscard }: Props) {
   const reduced = useReducedMotion();
+  const listRef = useRef<LegendListRef>(null);
+  const last = rows.at(-1);
+  const lastKey = last?.key;
+  const lastIsMine = last?.type === 'outbox' || (last?.type === 'msg' && last.mine);
+  // A send of ours always brings the thread to the bottom (standard chat UX), even if the user had scrolled up.
+  useEffect(() => {
+    if (lastIsMine) listRef.current?.scrollToEnd({ animated: !reduced });
+  }, [lastKey, lastIsMine, reduced]);
   const renderItem = useCallback(
     ({ item }: LegendListRenderItemProps<Row>) => <MessageRow row={item} peer={peer} onRetry={onRetry} onDiscard={onDiscard} />,
     [peer, onRetry, onDiscard],
@@ -34,6 +42,7 @@ export function MessageList({ rows, peer, loadingOlder, onLoadOlder, onRetry, on
 
   return (
     <LegendList
+      ref={listRef}
       data={rows}
       renderItem={renderItem}
       keyExtractor={keyExtractor}

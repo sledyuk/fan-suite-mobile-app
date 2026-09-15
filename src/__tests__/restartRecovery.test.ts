@@ -38,6 +38,7 @@ test('3 pending survive a restart; 4 incoming are recovered first; pending flush
   expect(s.root.connectivity.online).toBe(false);
   expect(s.root.outbox.items.map((i) => [i.text, i.status])).toEqual([['a', 'pending'], ['b', 'pending'], ['c', 'pending']]);
   expect(s.root.chat.thread(CHAT).loaded).toBe(false);
+  expect(s.root.chat.thread(CHAT).ordered.length).toBe(10);          // cached recent history shows offline
 
   // Reconnect: sync first, then drain.
   s.root.connectivity.setOnline(true);
@@ -64,5 +65,18 @@ test('lost response + retry through the whole stack yields one copy', async () =
   expect(s.root.outbox.items).toHaveLength(0);
   expect(s.api.allMessages(CHAT).filter((m) => m.text === 'once')).toHaveLength(1);
   expect(s.root.chat.thread(CHAT).ordered.filter((m) => m.text === 'once')).toHaveLength(1);
+  s.stop(); s.root.dispose();
+});
+
+test('a failed send blocks the messages queued behind it in the same chat (local order preserved)', async () => {
+  const s = await boot(new MemoryKV(), new MemoryKV());
+  s.root.connectivity.setFault('failNextSend', 'RATE_LIMITED');
+  s.root.outbox.enqueue(CHAT, 'first'); s.root.outbox.enqueue(CHAT, 'second');
+  for (let i = 0; i < 20; i++) await flush();
+  expect(s.root.outbox.items.map((i) => [i.text, i.status])).toEqual([['first', 'failed'], ['second', 'pending']]);
+  expect(s.api.messageCount(CHAT)).toBe(10);
+  s.root.outbox.retry(s.root.outbox.items[0].clientId);              // user taps Retry
+  for (let i = 0; i < 40 && s.root.outbox.items.length; i++) await flush();
+  expect(s.root.chat.thread(CHAT).ordered.slice(-2).map((m) => m.text)).toEqual(['first', 'second']);
   s.stop(); s.root.dispose();
 });

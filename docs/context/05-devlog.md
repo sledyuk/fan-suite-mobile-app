@@ -61,3 +61,10 @@
 - `EmptyState` component with a dev-only "Load demo data" button; `DebugButton` (glass bug icon) in every tab header; dev sheet has Seed / Reset to empty at the top and shows account state.
 - More → "Reset to empty account" with confirm alert.
 - Crash found once the Expo Go tip sheet was out of the way: `useReducedMotion` from react-native-reanimated threw "Object is not a function" at runtime in Expo Go (versions match Expo's bundled 4.5.1; export exists). Replaced with our own `hooks/useReducedMotion` on RN `AccessibilityInfo`; Reanimated is still used for entering/exiting animations.
+
+## 2026-09-15 — Step 9: validation run + fixes
+- Added scripted dev actions (`/dev?run=seed|reset|offline|online|send|inject|drop|buggy|fail|outcome`) to drive scenarios from deep links (simulator automation + recordings). Dev sheet now shows stats (chats, unread chats/messages, online, mine-last, seen; per-thread loaded/lastSeq/server/outbox). Dashboard tiles: Sending, Failed sends.
+- Verified from the app's SQLite store (not screenshots): online send accepted; 4 injected fan messages got seq before the 3 offline sends flushed on reconnect (sync-before-drain works); lost response + retry = 1 copy on the idempotent server, 2 copies on the naive server; BLOCKED send stays failed/non-recoverable with text kept.
+- Bugs found and fixed: (1) a RATE_LIMITED failure on "one" let "two"/"three" go through → drainer now blocks a chat's queue behind a failed item until Retry/Delete (test added); (2) queued bubbles were appended below the fold → list scrolls to end on our own sends; (3) thread was blank when opened offline after a restart → newest 50 confirmed messages cached per thread (`thread-cache.v1.*`), asserted in the restart test.
+- List sync worker: rows follow real state (sending/failed/delivered, incoming preview + unread bump unless the thread is open); opening a thread marks it read.
+- Blocker for visual checks: Expo Go's onboarding sheet reappears on every cold launch until Continue is tapped; AppleScript tap needs Accessibility permission. Data verified via `sqlite3` on `ExpoSQLiteStorage` in the Expo Go container.
