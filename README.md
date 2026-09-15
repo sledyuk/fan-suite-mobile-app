@@ -65,7 +65,7 @@ git diff --check
 
 Current automated result: **10 Jest suites, 37 tests passed**, TypeScript typecheck passed, and `git diff --check` passed.
 
-Demo platform: iOS. Tested manually on an iPhone running iOS 27 (exact model: _fill in before sending_) and on the iOS Simulator. Android: run `npm run android`; it was opened briefly but not functionally tested.
+Demo platform: iOS. Tested manually on an iPhone running iOS 27 and on the iOS Simulator (iPhone 18 Pro, iOS 27.0). Android: run `npm run android`; it was opened briefly but not functionally tested.
 
 Time spent: about 7 hours, including setup, testing and documentation.
 
