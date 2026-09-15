@@ -25,7 +25,6 @@ export const MailOpen: IconComponent = wrap(Iconsax.MessageText1);
 export const Gift: IconComponent = wrap(Iconsax.Gift);
 export const Clock: IconComponent = wrap(Iconsax.Clock);
 export const ChevronRight: IconComponent = wrap(Iconsax.ArrowRight2);
-export const Bug: IconComponent = wrap(Iconsax.Code);
 export const Bell: IconComponent = wrap(Iconsax.Notification);
 export const BellOff: IconComponent = wrap(Iconsax.NotificationBing);
 export const ArrowLeft: IconComponent = wrap(Iconsax.ArrowLeft2);
@@ -70,6 +69,14 @@ export const Video: IconComponent = wrap(Iconsax.Video);
 /** Plain check mark (checkbox, delivered). Iconsax only ships ticks inside shapes. */
 export const Check: IconComponent = ({ size = 20, color = '#18181B', strokeWidth = 2 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M20 6 9 17l-5-5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></Svg>
+);
+/** Bug glyph for the debug bubble (Iconsax has none); drawn to match its 1.5pt Linear stroke. */
+export const Bug: IconComponent = ({ size = 20, color = '#18181B', strokeWidth = 1.5 }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path d="M8 2l1.88 1.88M14.12 3.88 16 2M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6ZM12 20v-9" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    <Path d="M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+  </Svg>
 );
 /** Plain close mark for round close buttons. */
 export const X: IconComponent = ({ size = 20, color = '#18181B', strokeWidth = 2 }) => (
