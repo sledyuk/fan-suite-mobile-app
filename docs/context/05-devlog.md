@@ -74,3 +74,9 @@
 - Verified failed items stay failed across time, navigation and Fast Refresh (SQLite probes); scripted `run=retry|discard` actions exist for recordings.
 - Code review (background /code-review) found 4 real bugs, all fixed with tests: list sync skipped unread bumps while a send was in flight and left rows stuck on "failed" after a swipe-delete; duplicate day-separator keys when a queued item's day already appeared in history; backoff off-by-one (only 2 retries, 4 s step dead) → now 3 retries.
 - Debug access rework (Bogdan): seed / reset / demo loading live only in the debug sheet; header bug buttons removed; a floating glass debug button appears on every screen while More → "Developer mode" is on (persisted `SettingsStore`, default on in dev builds). FAB reads the route to pass the open chat id.
+
+## 2026-09-15 — Step 10: media, Expo-language sheets, icons
+- Photo/video sending: `lib/pickMedia` (expo-image-picker, copy into `Paths.document` so the outbox item survives restarts), `Attachment` on outbox items and server messages, media bubbles (`AttachmentView`: image via expo-image, video tile with play badge + duration, no playback), composer chip with remove. List previews "📷 Photo" / "🎬 Video". Goes through the same outbox: offline/retry/idempotency apply.
+- Icons: Iconsax via one `components/icons.tsx` module; tab bar uses the Figma glyphs (SVG sources in `assets/icons/tabs/src`, rendered to template PNGs at 1x/2x/3x by `scripts/render-tab-icons.mjs` + `scripts/svg2png.swift`). Native tab bar takes bitmaps only; 3x is pixel-exact on every iPhone.
+- Sheets share `components/GroupedList` (Section / Row / KV / Pill / Tip, #F2F2F7 groups) and `ModalLayout appIcon`: debug, paywall and New message now read like Expo's dev menu. Tab order Dashboard / Wallet / Messages / More; search tab uses `Stack.SearchBar`.
+- Debug bubble: draggable, snaps to the nearest of four edges, tucks ~45% off-screen; on/off from More → Developer mode.

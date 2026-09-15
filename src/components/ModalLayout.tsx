@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, X } from '@/components/icons';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -16,6 +17,8 @@ interface Props {
   action?: React.ReactNode;
   /** Set when the body should not scroll (e.g. it owns its own list). */
   scroll?: boolean;
+  /** Show the app icon before the title (Expo dev-menu header style). */
+  appIcon?: boolean;
   children: React.ReactNode;
 }
 
@@ -24,7 +27,7 @@ interface Props {
  * left-aligned title (+ optional subtitle), icon-only contained buttons on the
  * right, spacious padded body, and content that fades under the header on scroll.
  */
-export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll = true, children }: Props) {
+export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll = true, appIcon, children }: Props) {
   const insets = useSafeAreaInsets();
   const body = scroll ? (
     <ScrollView
@@ -46,13 +49,14 @@ export function ModalLayout({ title, subtitle, onClose, onBack, action, scroll =
             <ArrowLeft size={20} color={colors.textPrimary} strokeWidth={2} />
           </IconButton>
         )}
+        {appIcon && <Image source={require('@/assets/images/icon.png')} style={styles.appIcon} />}
         <View style={styles.titles}>
           <AppText variant="title" color={colors.textHeading} style={styles.title} numberOfLines={1}>{title}</AppText>
           {subtitle !== undefined && <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>{subtitle}</AppText>}
         </View>
         {action}
         <IconButton accessibilityLabel="Close" size={36} onPress={onClose} style={styles.close}>
-          <X size={18} color={colors.bg} strokeWidth={2.5} />
+          <X size={18} color={colors.textMuted} strokeWidth={2.5} />
         </IconButton>
       </View>
       <View style={styles.bodyWrap}>
@@ -68,9 +72,10 @@ const styles = StyleSheet.create({
   header: { minHeight: 60, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   titles: { flex: 1 },
   title: { fontSize: 20, lineHeight: 26 },
-  close: { backgroundColor: colors.textSecondary, borderRadius: 18 },
+  close: { backgroundColor: '#F2F2F7', borderRadius: 18 },
+  appIcon: { width: 44, height: 44, borderRadius: 22 },
   back: { marginLeft: -spacing.sm },
   bodyWrap: { flex: 1 },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.lg },
+  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xl },
   fade: { position: 'absolute', top: 0, left: 0, right: 0, height: 16 },
 });

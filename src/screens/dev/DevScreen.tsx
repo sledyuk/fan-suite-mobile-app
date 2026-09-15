@@ -1,17 +1,17 @@
-import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AppText } from '@/components/AppText';
-import { Check, Clock, Cpu, Lamp, Layers, MessageNotif, RotateCcw, Slash, Wallet, WifiOff, X, type IconComponent } from '@/components/icons';
+import { KV, Pill, Row, Section, Tip } from '@/components/GroupedList';
+import { Check, Clock, Cpu, Layers, MessageNotif, RotateCcw, Slash, Wallet, WifiOff } from '@/components/icons';
+import { ModalLayout } from '@/components/ModalLayout';
 import { useStores } from '@/hooks/useStores';
 import { billingConfig, container } from '@/services/container';
 import type { PurchaseOutcome } from '@/services/api/BillingApi';
 import type { Faults } from '@/services/mock/faults';
-import { colors, radii, spacing } from '@/theme/tokens';
+import { colors, spacing } from '@/theme/tokens';
 
 const FAILS: { label: string; value: Faults['failNextSend'] }[] = [
   { label: 'None', value: null }, { label: 'Rate limited (recoverable)', value: 'RATE_LIMITED' }, { label: 'Blocked', value: 'BLOCKED' }, { label: 'Needs payment', value: 'PAYMENT_REQUIRED' },
@@ -19,7 +19,6 @@ const FAILS: { label: string; value: Faults['failNextSend'] }[] = [
 const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
   { label: 'Success', value: 'success' }, { label: 'Cancelled', value: 'cancelled' }, { label: 'Failed', value: 'failed' }, { label: 'Success, backend confirms after 6 s', value: 'success_delayed' },
 ];
-const GROUP_BG = '#F2F2F7';
 
 /** Debug sheet in the language of Expo's dev menu: header, pill actions, grouped inset lists, tip, status. Local mock only. */
 const DevScreen = observer(function DevScreen() {
@@ -35,19 +34,8 @@ const DevScreen = observer(function DevScreen() {
   const thread = chatId ? root.chat.thread(chatId) : null;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <Image source={require('@/assets/images/icon.png')} style={styles.appIcon} />
-        <View style={styles.titles}>
-          <AppText variant="title" color={colors.textHeading}>FanSuite</AppText>
-          <AppText variant="caption" color={colors.textMuted}>Debug controls · local mock only</AppText>
-        </View>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close" style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}>
-          <X size={18} color={colors.textMuted} strokeWidth={2.5} />
-        </Pressable>
-      </View>
-
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]} showsVerticalScrollIndicator={false}>
+    <ModalLayout appIcon title="FanSuite" subtitle="Debug controls · local mock only" onClose={() => router.back()} scroll={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]} showsVerticalScrollIndicator={false} style={styles.scroll}>
         <View style={styles.pills}>
           <Pill icon={Layers} label={demo.seeded ? 'Demo loaded' : 'Seed demo'} disabled={demo.seeded} onPress={() => container.seedDemo()} />
           <Pill icon={RotateCcw} label="Reset to empty" onPress={() => { container.resetAll(); router.back(); }} />
@@ -76,10 +64,7 @@ const DevScreen = observer(function DevScreen() {
           ))}
         </Section>
 
-        <View style={styles.tip}>
-          <View style={styles.tipHead}><Lamp size={16} color={colors.verified} /><AppText variant="name" color={colors.verified}>Tip</AppText></View>
-          <AppText variant="caption" color={colors.textSecondary}>Offline on → send three → offline off: incoming messages sync first, then the queue drains in order.</AppText>
-        </View>
+        <Tip>Offline on → send three → offline off: incoming messages sync first, then the queue drains in order.</Tip>
 
         <Section title="Status">
           <KV label="Account" value={demo.seeded ? 'demo' : 'empty'} />
@@ -90,70 +75,14 @@ const DevScreen = observer(function DevScreen() {
           {thread ? <KV label="This thread" value={`${thread.orderedIds.length} loaded · seq ${thread.lastSeq} · server ${container.server.messageCount(chatId!)}`} last /> : <KV label="Fans online" value={String(demo.conversations.filter((c) => c.online).length)} last />}
         </Section>
       </ScrollView>
-    </View>
+    </ModalLayout>
   );
 });
 
 export default DevScreen;
 
-function Pill({ icon: Icon, label, onPress, disabled }: { icon: IconComponent; label: string; onPress: () => void; disabled?: boolean }) {
-  return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" accessibilityState={{ disabled }} style={({ pressed }) => [styles.pill, pressed && { opacity: 0.7 }, disabled && { opacity: 0.45 }]}>
-      <Icon size={20} color={colors.textPrimary} />
-      <AppText variant="body" color={colors.textPrimary} style={styles.pillLabel}>{label}</AppText>
-    </Pressable>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <AppText variant="time" color={colors.textMuted} style={styles.sectionTitle}>{title.toUpperCase()}</AppText>
-      <View style={styles.group}>{children}</View>
-    </View>
-  );
-}
-
-function Row({ icon: Icon, label, hint, right, onPress, disabled, last }: { icon?: IconComponent; label: string; hint?: string; right?: React.ReactNode; onPress?: () => void; disabled?: boolean; last?: boolean }) {
-  return (
-    <Pressable onPress={onPress} disabled={!onPress || disabled} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={hint ? `${label}. ${hint}` : label} style={({ pressed }) => [styles.row, !last && styles.rowBorder, pressed && onPress && styles.rowPressed, disabled && { opacity: 0.45 }]}>
-      {Icon && <Icon size={20} color={colors.textSecondary} />}
-      <View style={styles.rowText}>
-        <AppText>{label}</AppText>
-        {hint && <AppText variant="time" color={colors.textMuted}>{hint}</AppText>}
-      </View>
-      {right}
-    </Pressable>
-  );
-}
-
-function KV({ label, value, last }: { label: string; value: string; last?: boolean }) {
-  return (
-    <View style={[styles.row, !last && styles.rowBorder]}>
-      <AppText style={styles.rowText}>{label}</AppText>
-      <AppText variant="caption" color={colors.textSecondary} style={styles.kv}>{value}</AppText>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bg },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm },
-  appIcon: { width: 44, height: 44, borderRadius: 22 },
-  titles: { flex: 1 },
-  close: { width: 40, height: 40, borderRadius: 20, backgroundColor: GROUP_BG, alignItems: 'center', justifyContent: 'center' },
-  content: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xl },
+  scroll: { marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg },
+  content: { paddingTop: spacing.xs, gap: spacing.xl },
   pills: { flexDirection: 'row', gap: spacing.md },
-  pill: { flex: 1, height: 64, borderRadius: radii.card, backgroundColor: GROUP_BG, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  pillLabel: { fontSize: 16 },
-  section: { gap: spacing.sm },
-  sectionTitle: { letterSpacing: 0.6, marginLeft: spacing.xs },
-  group: { backgroundColor: GROUP_BG, borderRadius: radii.card, overflow: 'hidden' },
-  row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
-  rowPressed: { backgroundColor: colors.divider },
-  rowText: { flex: 1, gap: 1 },
-  kv: { flexShrink: 1, textAlign: 'right' },
-  tip: { backgroundColor: '#E8F3FD', borderRadius: radii.card, padding: spacing.lg, gap: spacing.xs },
-  tipHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });
