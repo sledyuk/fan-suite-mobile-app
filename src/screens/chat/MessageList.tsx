@@ -33,7 +33,11 @@ export function MessageList({ rows, peer, loadingOlder, onLoadOlder, onRetry, on
   const lastIsMine = last?.type === 'outbox' || (last?.type === 'msg' && last.mine);
   // A send of ours always brings the thread to the bottom (standard chat UX), even if the user had scrolled up.
   useEffect(() => {
-    if (lastIsMine) listRef.current?.scrollToEnd({ animated: !reduced });
+    if (!lastIsMine) return;
+    // Defer past the row's first layout, then once more after the estimate settles.
+    const t1 = requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: !reduced }));
+    const t2 = setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 250);
+    return () => { cancelAnimationFrame(t1); clearTimeout(t2); };
   }, [lastKey, lastIsMine, reduced]);
   // First paint: item sizes are estimates until laid out, so pin to the end again once real sizes are in.
   const hadRows = useRef(false);

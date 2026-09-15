@@ -1,5 +1,8 @@
-import { Gift } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import { AlertCircle, Gift, Trash2 } from 'lucide-react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { AppText } from '@/components/AppText';
@@ -8,7 +11,7 @@ import { formatTime } from '@/lib/time';
 import type { OutboxItem, ServerMessage } from '@/services/api/types';
 import type { Participant } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
-import { StatusLine } from './StatusLine';
+import { StatusLine, hint } from './StatusLine';
 
 type Props =
   | { kind: 'msg'; msg: ServerMessage; mine: boolean; peer: Participant }
@@ -18,22 +21,57 @@ type Props =
  * Geometry from the Figma frame (375pt): radius 16, padding 16/12, max width
  * 84%, incoming bubbles sit after a 32pt avatar with a 13pt gap, timestamp
  * lives inside the bubble bottom-left. Gift messages get a 48pt icon box.
- * Outbox bubbles are dimmed while unconfirmed and outlined in red when failed.
+ * Outbox bubbles are dimmed while unconfirmed. A failed one keeps its look, gets a
+ * red "!" badge and a "Not delivered" caption; tap = retry (or subscribe), swipe
+ * right = delete. Same pattern as iMessage / WhatsApp / Telegram.
  */
 export function Bubble(props: Props) {
   const reduced = useReducedMotion();
   const entering = reduced ? undefined : FadeInDown.duration(180);
 
   if (props.kind === 'outbox') {
-    const { item } = props;
+    const { item, onRetry, onDiscard } = props;
     const failed = item.status === 'failed';
-    return (
+    const err = item.error;
+    const onTap = !failed ? undefined
+      : err?.recoverable !== false ? () => { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onRetry(item.clientId); }
+      : err.code === 'PAYMENT_REQUIRED' ? () => router.push('/paywall')
+      : undefined;
+    const bubble = (
       <Animated.View entering={entering} style={[styles.row, styles.rowMine]}>
-        <View style={[styles.bubble, styles.mine, !failed && styles.pending, failed && styles.failed]}>
+        {failed && (
+          <View style={styles.badge} accessibilityElementsHidden>
+            <AlertCircle size={18} color={colors.error} strokeWidth={2.25} />
+          </View>
+        )}
+        <Pressable
+          onPress={onTap}
+          disabled={!onTap}
+          accessibilityRole={onTap ? 'button' : undefined}
+          accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item)}. Swipe right to delete.` : `Sending. ${item.text}`}
+          style={({ pressed }) => [styles.bubble, styles.mine, !failed && styles.pending, pressed && onTap && styles.pressed]}
+        >
           <AppText>{item.text}</AppText>
-          <StatusLine item={item} onRetry={props.onRetry} onDiscard={props.onDiscard} />
-        </View>
+          <StatusLine item={item} />
+        </Pressable>
       </Animated.View>
+    );
+    if (!failed) return bubble;
+    return (
+      <ReanimatedSwipeable
+        friction={2}
+        leftThreshold={40}
+        overshootLeft={false}
+        renderLeftActions={() => (
+          <Pressable onPress={() => onDiscard(item.clientId)} accessibilityRole="button" accessibilityLabel="Delete message" style={styles.deleteAction}>
+            <Trash2 size={20} color={colors.bg} strokeWidth={2} />
+            <AppText variant="time" color={colors.bg} style={styles.deleteText}>Delete</AppText>
+          </Pressable>
+        )}
+        onSwipeableOpen={(dir) => { if (dir === 'left') onDiscard(item.clientId); }}
+      >
+        {bubble}
+      </ReanimatedSwipeable>
     );
   }
 
@@ -64,7 +102,10 @@ const styles = StyleSheet.create({
   mine: { backgroundColor: colors.primaryTint },
   theirs: { backgroundColor: colors.bgIncoming },
   pending: { opacity: 0.7 },
-  failed: { borderWidth: 1, borderColor: colors.error, backgroundColor: colors.errorSoft },
+  pressed: { backgroundColor: colors.primarySoft },
+  badge: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
+  deleteAction: { width: 88, marginBottom: spacing.xl, borderRadius: radii.xl, backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  deleteText: { fontFamily: 'Inter_500Medium' },
   time: { marginTop: spacing.sm },
   giftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   giftIcon: { width: 48, height: 48, borderRadius: radii.md, backgroundColor: colors.bgSubtle, borderWidth: 1, borderColor: colors.gift, alignItems: 'center', justifyContent: 'center' },
