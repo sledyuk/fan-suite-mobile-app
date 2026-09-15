@@ -5,7 +5,7 @@ import { Avatar } from '@/components/Avatar';
 import type { ServerMessage } from '@/services/api/types';
 import type { Participant } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
-import { formatTime } from './rows';
+import { formatTime } from '@/lib/time';
 
 interface Props {
   msg: ServerMessage;

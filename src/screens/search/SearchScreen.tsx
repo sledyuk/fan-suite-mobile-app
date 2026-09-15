@@ -19,7 +19,7 @@ export default function SearchScreen() {
   const data = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return CONVERSATIONS;
-    return CONVERSATIONS.filter((c) => c.fan.name.toLowerCase().includes(q) || c.fan.handle.toLowerCase().includes(q) || c.lastMessage.toLowerCase().includes(q));
+    return CONVERSATIONS.filter((c) => c.fan.name.toLowerCase().includes(q) || c.fan.handle.toLowerCase().includes(q) || c.last.text.toLowerCase().includes(q));
   }, [query]);
 
   const renderItem = useCallback(

@@ -1,9 +1,10 @@
+import { AlertCircle, Check, Clock } from 'lucide-react-native';
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
-import { relativeTime, type Conversation } from '@/services/mock/conversations';
-import { ME } from '@/services/mock/participants';
+import { listTime } from '@/lib/time';
+import { FIXTURE_NOW, type Conversation } from '@/services/mock/conversations';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface Props {
@@ -11,51 +12,90 @@ interface Props {
   onPress: (id: string) => void;
 }
 
+const ICON = 16;
+
 /**
- * 60pt row from the mockup: avatar 40 + presence, name + handle, preview · time,
- * then on the right a 20pt avatar of whoever sent the last message and two
- * status dots (top: unread, bottom: online).
+ * 60pt row. Left: 40pt avatar with presence. Middle: name + handle, preview.
+ * Right column: time on top, exactly one status mark below —
+ * fan's unread count, or for our own last message: sending / delivered / seen (fan avatar) / failed.
+ * Spec: docs/context/07-chat-row-states (artifact "Chat Row States").
  */
 export const ConversationRow = memo(function ConversationRow({ item, onPress }: Props) {
+  const { last, fan, unreadCount, online } = item;
+  const mine = last.from === 'creator';
+  const unread = !mine && unreadCount > 0;
+  const failed = mine && last.status === 'failed';
+  const stamp = mine && last.status === 'sending' ? 'now' : listTime(last.at, FIXTURE_NOW);
+
+  const preview = failed ? `Not sent · ${last.text}` : mine ? `You: ${last.text}` : last.text;
+  const previewColor = failed ? colors.error : unread ? colors.textSecondary : colors.textMuted;
+
+  const a11y = [
+    `Chat with ${fan.name}`,
+    online ? 'online' : 'offline',
+    unread ? `${unreadCount} unread` : mine ? `your message ${last.status}` : 'read',
+    stamp,
+  ].join(', ');
+
   return (
     <Pressable
       onPress={() => onPress(item.id)}
       accessibilityRole="button"
-      accessibilityLabel={`Chat with ${item.fan.name}, ${item.unread ? 'unread' : 'read'}, ${relativeTime(item.lastAt)}`}
+      accessibilityLabel={a11y}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Avatar source={item.fan.avatar} name={item.fan.name} size={40} online={item.online} />
+      <Avatar source={fan.avatar} name={fan.name} size={40} online={online} />
+
       <View style={styles.body}>
         <View style={styles.nameLine}>
-          <AppText variant="name" numberOfLines={1}>{item.fan.name} </AppText>
-          <AppText variant="name" color={colors.primary} numberOfLines={1} style={styles.handle}>{item.fan.handle}</AppText>
+          <AppText variant="name" numberOfLines={1} style={styles.nameText}>
+            {fan.name} <AppText variant="name" color={colors.primary}>{fan.handle}</AppText>
+          </AppText>
         </View>
-        <View style={styles.previewLine}>
-          <AppText variant="caption" color={colors.textMuted} numberOfLines={1} style={styles.preview}>{item.lastMessage}</AppText>
-          <AppText variant="time" color={colors.textMuted}> · {relativeTime(item.lastAt)}</AppText>
-        </View>
+        <AppText variant="caption" color={previewColor} numberOfLines={1} style={unread && styles.previewUnread}>
+          {preview}
+        </AppText>
       </View>
-      <Avatar
-        source={item.lastMessage.startsWith('You:') ? ME.avatar : item.fan.avatar}
-        name={item.lastMessage.startsWith('You:') ? ME.name : item.fan.name}
-        size={20}
-      />
-      <View style={styles.dots}>
-        <View style={[styles.dot, { backgroundColor: item.unread ? colors.online : colors.divider }]} />
-        <View style={[styles.dot, { backgroundColor: item.online ? colors.online : colors.divider }]} />
+
+      <View style={styles.right}>
+        <AppText variant="time" color={unread ? colors.primary : colors.textMuted} style={[styles.time, unread && styles.timeHot]}>
+          {stamp}
+        </AppText>
+        <View style={styles.mark}>
+          {unread && (
+            <View style={styles.badge} accessibilityElementsHidden>
+              <AppText variant="time" color={colors.bg} style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</AppText>
+            </View>
+          )}
+          {mine && last.status === 'seen' && <Avatar source={fan.avatar} name={fan.name} size={18} />}
+          {mine && last.status === 'delivered' && <Check size={ICON} color={colors.textMuted} strokeWidth={2.25} />}
+          {mine && last.status === 'sending' && <Clock size={ICON} color={colors.textMuted} strokeWidth={2} />}
+          {failed && <AlertCircle size={ICON} color={colors.error} strokeWidth={2} />}
+        </View>
       </View>
     </Pressable>
   );
 });
 
 const styles = StyleSheet.create({
-  row: { height: 60, marginHorizontal: spacing.lg, borderRadius: radii.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.sm },
+  row: {
+    height: 60,
+    marginHorizontal: spacing.lg,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radii.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
   pressed: { backgroundColor: colors.primarySoft },
-  body: { flex: 1 },
-  nameLine: { flexDirection: 'row', alignItems: 'center' },
-  handle: { flexShrink: 1 },
-  previewLine: { flexDirection: 'row', alignItems: 'center' },
-  preview: { flexShrink: 1 },
-  dots: { gap: 6, alignItems: 'center', marginLeft: spacing.xs },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  body: { flex: 1, gap: 1 },
+  nameLine: { flexDirection: 'row' },
+  nameText: { flexShrink: 1 },
+  previewUnread: { fontFamily: 'Inter_500Medium' },
+  right: { alignItems: 'flex-end', justifyContent: 'center', minWidth: 44, gap: spacing.xs },
+  time: { fontVariant: ['tabular-nums'] },
+  timeHot: { fontFamily: 'Inter_500Medium' },
+  mark: { height: 18, minWidth: 18, alignItems: 'flex-end', justifyContent: 'center' },
+  badge: { minWidth: 18, height: 18, paddingHorizontal: 6, borderRadius: 9, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
+  badgeText: { fontSize: 11, lineHeight: 14, fontFamily: 'Inter_600SemiBold' },
 });

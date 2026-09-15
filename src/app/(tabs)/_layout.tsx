@@ -1,8 +1,8 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { CONVERSATIONS } from "@/services/mock/conversations";
+import { totalUnread } from "@/services/mock/conversations";
 import { colors } from "@/theme/tokens";
 
-const unread = CONVERSATIONS.filter((c) => c.unread).length;
+const unread = totalUnread();
 
 /**
  * Native tab bar. On iOS 26 it is Liquid Glass, minimizes while scrolling down,

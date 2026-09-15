@@ -1,3 +1,4 @@
+import { dayLabel } from '@/lib/time';
 import type { ServerMessage } from '@/services/api/types';
 
 /**
@@ -7,21 +8,6 @@ import type { ServerMessage } from '@/services/api/types';
 export type Row =
   | { key: string; type: 'day'; label: string }
   | { key: string; type: 'msg'; msg: ServerMessage; mine: boolean };
-
-const DAY = 86_400_000;
-
-export function dayLabel(ts: number, now = Date.now()): string {
-  const d = new Date(ts);
-  const startOfToday = new Date(now); startOfToday.setHours(0, 0, 0, 0);
-  const diffDays = Math.floor((startOfToday.getTime() - new Date(d).setHours(0, 0, 0, 0)) / DAY);
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: d.getFullYear() === new Date(now).getFullYear() ? undefined : 'numeric' });
-}
-
-export function formatTime(ts: number): string {
-  return new Date(ts).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }).toLowerCase();
-}
 
 /** Oldest → newest, with a day separator whenever the calendar date changes. */
 export function buildRows(messages: ReadonlyArray<ServerMessage>, now = Date.now()): Row[] {

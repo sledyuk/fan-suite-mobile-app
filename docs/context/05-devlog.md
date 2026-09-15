@@ -31,3 +31,4 @@
 - `GlassIconButton`: GlassView on iOS 26+, filled circle fallback elsewhere (Android / iOS ≤18).
 - Fallback note: on Android and iOS 18 the header is the plain native bar; still correct, just not glass.
 - Chats list vs Figma: added filter + plus glass header buttons (iOS 26 merges them into one capsule) and the 20pt "last sender" avatar per row. The two right-hand dots are undefined in Figma (same pattern on every row); implemented as top = unread, bottom = online. Documented as an assumption.
+- Chat row states agreed via artifact (docs/context/07-chat-row-states.html, https://claude.ai/artifact/KzNk6SJrtxDdTYRpeUUJfi): right column = time above, one mark below. Fan-sent: unread count badge or nothing. Creator-sent ("You:"): sending clock / delivered check / seen = fan avatar / failed alert with "Not sent ·" red preview. Presence dot independent. Conversation model now carries `last {text, from, at, status}` + `unreadCount`; time helpers moved to `lib/time.ts`.
