@@ -15,8 +15,8 @@ const KEY = (chatId: string) => `chat.v1.${chatId}`;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface ServerOptions {
-  /** History size seeded on first access of a thread. */
-  seedCount?: number;
+  /** History size seeded on first access of a thread (a function lets the app decide: empty vs demo). */
+  seedCount?: number | (() => number);
   /** Seed per chat so each thread is a different deterministic conversation. */
   seedFor?: (chatId: string) => number;
 }
@@ -36,7 +36,8 @@ export class MockChatServer implements ChatApi {
       const raw = this.storage.get(KEY(chatId));
       if (raw) t = JSON.parse(raw) as Thread;
       else {
-        const seed = generateHistory(this.opts.seedCount ?? 50_000, this.opts.seedFor?.(chatId) ?? 42);
+        const count = typeof this.opts.seedCount === 'function' ? this.opts.seedCount() : (this.opts.seedCount ?? 50_000);
+        const seed = generateHistory(count, this.opts.seedFor?.(chatId) ?? 42);
         t = { messages: seed, acceptedByClientId: {}, nextSeq: seed.length + 1 };
         this.persist(chatId, t);
       }

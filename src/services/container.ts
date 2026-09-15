@@ -10,6 +10,8 @@ import { RootStore } from '@/stores/RootStore';
 import { startWorkers } from '@/workers/startWorkers';
 
 const seedFor = (chatId: string) => CONVERSATIONS.find((c) => c.id === chatId)?.seed ?? 42;
+/** Empty account → empty threads; demo account → 50k history per thread. */
+const seedCount = () => (root.demo.seeded ? 50_000 : 0);
 const listeners = new Set<() => void>();
 
 /** Dev-sheet knobs for the billing mocks. */
@@ -20,7 +22,7 @@ const backend = new MockBackendBilling(() => billingConfig);
 let root = new RootStore(clientKV, purchases, backend);
 if (root.billing.isAwaiting) void root.billing.checkAgain();   // purchase confirmed while we were away?
 const faults = () => root.connectivity.faults;
-let server: MockChatServer = new MockChatServer(serverKV, faults, { seedFor });
+let server: MockChatServer = new MockChatServer(serverKV, faults, { seedFor, seedCount });
 let stop = startWorkers(root, server);
 let buggy = false;
 
@@ -37,7 +39,7 @@ export const container = {
   /** Swap in the server without the idempotency key, to reproduce the duplicate live. */
   useBuggyServer(on: boolean) {
     buggy = on; stop();
-    server = on ? new NaiveChatServer(serverKV, faults, { seedFor }) : new MockChatServer(serverKV, faults, { seedFor });
+    server = on ? new NaiveChatServer(serverKV, faults, { seedFor, seedCount }) : new MockChatServer(serverKV, faults, { seedFor, seedCount });
     stop = startWorkers(root, server);
   },
 
@@ -50,9 +52,15 @@ export const container = {
     clientKV.clear(); serverKV.clear();
     root = new RootStore(clientKV, purchases, backend); buggy = false;
     billingConfig.outcome = 'success'; billingConfig.confirmDelayMs = 0;
-    server = new MockChatServer(serverKV, faults, { seedFor });
+    server = new MockChatServer(serverKV, faults, { seedFor, seedCount });
     stop = startWorkers(root, server);
     listeners.forEach((l) => l());
+  },
+
+  /** Fill the account with demo data: conversations, wallet, and 50k-message threads. */
+  seedDemo() {
+    serverKV.clear(); root.chat.clear(); server.reset();
+    root.demo.seed();
   },
 
   onReset(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },

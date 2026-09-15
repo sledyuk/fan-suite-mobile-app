@@ -1,4 +1,4 @@
-import { CONVERSATIONS } from './conversations';
+import type { Conversation } from './conversations';
 
 /** A FanSuite is a subscription tier. Messaging one means every fan currently in it. */
 export interface Suite {
@@ -7,6 +7,9 @@ export interface Suite {
   fanIds: string[];
 }
 
-const tier = (id: Suite['id'], name: string): Suite => ({ id, name, fanIds: CONVERSATIONS.filter((c) => c.suiteId === id).map((c) => c.id) });
+const NAMES: Record<Suite['id'], string> = { 'all-access': 'All Access', vip: 'VIP Garage', free: 'Free tier' };
 
-export const SUITES: Suite[] = [tier('all-access', 'All Access'), tier('vip', 'VIP Garage'), tier('free', 'Free tier')];
+/** Suites derived from whoever is currently in the conversation list. */
+export function suitesFor(conversations: ReadonlyArray<Conversation>): Suite[] {
+  return (Object.keys(NAMES) as Suite['id'][]).map((id) => ({ id, name: NAMES[id], fanIds: conversations.filter((c) => c.suiteId === id).map((c) => c.id) }));
+}

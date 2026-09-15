@@ -54,3 +54,9 @@
 - UI: `/paywall` sheet (product card in ʂ, perks, honest state pills incl. "Check again" after 8 s, Subscribe busy/disabled, Restore, simulated-billing legal), Dashboard `PlanCard` (Free / Confirming… / Pro renews), Wallet (balance, pending payout, simulated payout, transactions with refund in red), broadcast CTA becomes "Upgrade to message (N) users" without Pro. Dev sheet: next purchase outcome (delayed = 6 s).
 - Dashboard and Wallet tabs got native glass headers via nested Stacks (trigger names `dashboard`, `wallet`).
 - Simplified mocks per Bogdan: no artificial store latency; only the backend confirm delay is configurable.
+
+## 2026-09-15 — Step 8: empty vs seeded account, debug everywhere
+- `DemoDataStore` (persisted): `seeded`, conversations (pins/read/mute now persist), wallet. Fresh install = empty account; `container.seedDemo()` fills fixtures and lets the mock server generate 50k history per thread (`seedCount` is now a function of `seeded`); `resetAll()` returns to empty.
+- All screens read the store (observer): Chats, Search, New message (suites derived from current fans), Broadcast, Dashboard, Wallet, routes `chat/[id]` and `fan/[id]`, tab badge.
+- `EmptyState` component with a dev-only "Load demo data" button; `DebugButton` (glass bug icon) in every tab header; dev sheet has Seed / Reset to empty at the top and shows account state.
+- More → "Reset to empty account" with confirm alert.

@@ -6,7 +6,7 @@ import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
 import { Composer } from '@/components/Composer';
 import { ModalLayout } from '@/components/ModalLayout';
-import { CONVERSATIONS } from '@/services/mock/conversations';
+import { useStores } from '@/hooks/useStores';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 interface Props {
@@ -22,7 +22,8 @@ interface Sent { id: string; text: string; at: number }
  */
 export default function BroadcastScreen({ fanIds }: Props) {
   const insets = useSafeAreaInsets();
-  const fans = CONVERSATIONS.filter((c) => fanIds.includes(c.id));
+  const { demo } = useStores();
+  const fans = demo.conversations.filter((c) => fanIds.includes(c.id));
   const count = fans.length;
   const [sent, setSent] = useState<Sent[]>([]);
 

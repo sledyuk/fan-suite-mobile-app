@@ -93,4 +93,3 @@ export function findConversation(id: string | undefined): Conversation | undefin
 /** Fixed "now" for the fixture so list stamps are stable in screenshots and tests. */
 export const FIXTURE_NOW = NOW;
 
-export const totalUnread = () => CONVERSATIONS.reduce((n, c) => n + c.unreadCount, 0);

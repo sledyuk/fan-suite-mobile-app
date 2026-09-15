@@ -24,7 +24,7 @@ const OUTCOMES: { label: string; value: PurchaseOutcome }[] = [
 const DevScreen = observer(function DevScreen() {
   const root = useStores();
   const { chatId } = useLocalSearchParams<{ chatId?: string }>();
-  const { connectivity, outbox, billing } = root;
+  const { connectivity, outbox, billing, demo } = root;
   const [outcome, setOutcome] = useState<PurchaseOutcome>(billingConfig.outcome);
   const pick = (v: PurchaseOutcome) => { billingConfig.outcome = v; billingConfig.confirmDelayMs = v === 'success_delayed' ? 6000 : 0; setOutcome(v); };
   const [buggy, setBuggy] = useState(container.buggyServer);
@@ -33,6 +33,13 @@ const DevScreen = observer(function DevScreen() {
 
   return (
     <ModalLayout title="Debug controls" subtitle="Local mock only" onClose={() => router.back()}>
+      <View style={styles.seedRow}>
+        <PrimaryButton label={demo.seeded ? 'Demo data loaded' : 'Seed demo data'} disabled={demo.seeded} onPress={() => container.seedDemo()} style={styles.seedBtn} />
+        <Pressable onPress={() => { container.resetAll(); router.back(); }} accessibilityRole="button" style={({ pressed }) => [styles.clearBtn, pressed && { opacity: 0.7 }]}>
+          <AppText variant="badge" color={colors.error}>Reset to empty</AppText>
+        </Pressable>
+      </View>
+      <AppText variant="time" color={colors.textMuted}>Empty = fresh account (no chats, zero balance, free plan). Seed = demo conversations, wallet and 50k-message threads.</AppText>
       <Row label="Offline" hint="Sends queue and show “Sending…”">
         <Switch value={!connectivity.online} onValueChange={(v) => runInAction(() => connectivity.setOnline(!v))} trackColor={{ true: colors.primary }} />
       </Row>
@@ -76,15 +83,11 @@ const DevScreen = observer(function DevScreen() {
 
       <View style={styles.status}>
         <AppText variant="caption">Status</AppText>
-        <AppText variant="time" color={colors.textMuted}>online {String(connectivity.online)} · syncing {String(connectivity.syncing)}</AppText>
+        <AppText variant="time" color={colors.textMuted}>account {demo.seeded ? 'demo' : 'empty'} · online {String(connectivity.online)} · syncing {String(connectivity.syncing)}</AppText>
         <AppText variant="time" color={colors.textMuted}>outbox: {counts.pending} pending · {counts.sending} sending · {counts.failed} failed</AppText>
         <AppText variant="time" color={colors.textMuted}>plan: {billing.entitlement.status}{billing.entitlement.receiptId ? ` · ${billing.entitlement.receiptId.slice(-6)}` : ''}</AppText>
       </View>
 
-      <Pressable onPress={() => { container.resetAll(); router.back(); }} accessibilityRole="button" style={({ pressed }) => [styles.reset, pressed && { opacity: 0.7 }]}>
-        <AppText variant="badge" color={colors.error}>Reset all data</AppText>
-        <AppText variant="time" color={colors.textMuted}>Clears the outbox, the mock server and reseeds history</AppText>
-      </Pressable>
     </ModalLayout>
   );
 });
@@ -110,5 +113,7 @@ const styles = StyleSheet.create({
   segment: { paddingHorizontal: spacing.md, height: 32, borderRadius: 16, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
   segmentOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   status: { padding: spacing.md, borderRadius: radii.card, backgroundColor: colors.bgPanel, gap: 2 },
-  reset: { padding: spacing.md, borderRadius: radii.card, borderWidth: 1, borderColor: colors.errorSoft, backgroundColor: colors.errorSoft, gap: 2 },
+  seedRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  seedBtn: { flex: 1 },
+  clearBtn: { height: 44, paddingHorizontal: spacing.md, borderRadius: radii.lg, backgroundColor: colors.errorSoft, alignItems: 'center', justifyContent: 'center' },
 });

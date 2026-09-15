@@ -1,9 +1,12 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack, router } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { MessageCircle, Plus } from 'lucide-react-native';
+import { observer } from 'mobx-react-lite';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DebugButton } from '@/components/DebugButton';
+import { EmptyState } from '@/components/EmptyState';
 import { GlassIconButton } from '@/components/GlassIconButton';
 import { type Conversation } from '@/services/mock/conversations';
 import { colors, spacing } from '@/theme/tokens';
@@ -14,7 +17,7 @@ const keyExtractor = (c: Conversation) => c.id;
 
 export const openConversation = (id: string) => router.push({ pathname: '/chat/[chatId]', params: { chatId: id } });
 
-export default function ChatListScreen() {
+const ChatListScreen = observer(function ChatListScreen() {
   const insets = useSafeAreaInsets();
   const { items, refreshing, refresh, actions } = useConversations();
   const renderItem = useCallback(
@@ -28,26 +31,35 @@ export default function ChatListScreen() {
         options={{
           title: 'Chats',
           headerRight: () => (
-            <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
-              <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
-            </GlassIconButton>
+            <View style={styles.headerButtons}>
+              <DebugButton />
+              <GlassIconButton accessibilityLabel="New message" onPress={() => router.push('/new-message')}>
+                <Plus size={20} color={colors.textPrimary} strokeWidth={2} />
+              </GlassIconButton>
+            </View>
           ),
         }}
       />
       <LegendList
         data={items}
-        refreshing={refreshing}
-        onRefresh={refresh}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         estimatedItemSize={60}
+        refreshing={refreshing}
+        onRefresh={refresh}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ paddingTop: spacing.sm, paddingBottom: insets.bottom + spacing.lg }}
+        ListEmptyComponent={
+          <EmptyState icon={MessageCircle} title="No conversations yet" body="When fans message you, their chats show up here. Pull down to refresh." seedable />
+        }
       />
     </View>
   );
-}
+});
+
+export default ChatListScreen;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  headerButtons: { flexDirection: 'row', gap: spacing.sm },
 });

@@ -1,4 +1,4 @@
-import { CONVERSATIONS, findConversation, totalUnread } from '@/services/mock/conversations';
+import { CONVERSATIONS, findConversation } from '@/services/mock/conversations';
 import { listTime } from '@/lib/time';
 
 describe('conversations fixture', () => {
@@ -6,7 +6,7 @@ describe('conversations fixture', () => {
     const ids = new Set(CONVERSATIONS.map((c) => c.id)); expect(ids.size).toBe(CONVERSATIONS.length);
     const seeds = new Set(CONVERSATIONS.map((c) => c.seed)); expect(seeds.size).toBe(CONVERSATIONS.length);
     for (let i = 1; i < CONVERSATIONS.length; i++) expect(CONVERSATIONS[i - 1].last.at).toBeGreaterThan(CONVERSATIONS[i].last.at);
-    expect(totalUnread()).toBe(3);
+    expect(CONVERSATIONS.reduce((n, c) => n + c.unreadCount, 0)).toBe(3);
     for (const c of CONVERSATIONS) expect(c.last.from === 'creator' ? c.last.status !== undefined : c.last.status === undefined).toBe(true);
     expect(findConversation('rick')?.fan.name).toBe('Rick Sanchez');
     expect(findConversation('nope')).toBeUndefined();

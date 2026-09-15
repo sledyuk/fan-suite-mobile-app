@@ -1,5 +1,6 @@
+import { runInAction } from 'mobx';
 import { useCallback, useMemo, useState } from 'react';
-import { CONVERSATIONS, type Conversation } from '@/services/mock/conversations';
+import { useStores } from '@/hooks/useStores';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -9,40 +10,26 @@ export interface ConversationActions {
   toggleMute: (id: string) => void;
 }
 
-/** Pinned first, then newest last message. */
-const order = (list: Conversation[]) =>
-  [...list].sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || b.last.at - a.last.at);
-
 /**
- * Owns the conversation list, pull-to-refresh and row actions. Today it works
- * on the fixture in memory; the sync step will swap `refresh` for a call to the
- * mock chat server without changing this hook's shape.
+ * Conversation list from the demo store (empty or seeded), pull-to-refresh, and
+ * row actions. Call from an `observer` component. Refresh is a simulated round
+ * trip; with a real backend it would call the conversations endpoint.
  */
 export function useConversations() {
-  const [items, setItems] = useState<Conversation[]>(() => order(CONVERSATIONS));
+  const { demo } = useStores();
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async () => {
     if (refreshing) return;
     setRefreshing(true);
-    try {
-      await sleep(700);
-      setItems((prev) => order(prev));
-    } finally {
-      setRefreshing(false);
-    }
+    try { await sleep(700); } finally { setRefreshing(false); }
   }, [refreshing]);
 
-  const patch = useCallback((id: string, fn: (c: Conversation) => Partial<Conversation>) => {
-    setItems((prev) => order(prev.map((c) => (c.id === id ? { ...c, ...fn(c) } : c))));
-  }, []);
-
   const actions = useMemo<ConversationActions>(() => ({
-    // Mark read clears the count; mark unread on a read fan message sets 1 (creator-sent rows stay 0).
-    toggleRead: (id) => patch(id, (c) => ({ unreadCount: c.unreadCount > 0 ? 0 : c.last.from === 'fan' ? 1 : 0 })),
-    togglePin: (id) => patch(id, (c) => ({ pinned: !c.pinned })),
-    toggleMute: (id) => patch(id, (c) => ({ muted: !c.muted })),
-  }), [patch]);
+    toggleRead: (id) => runInAction(() => demo.toggleRead(id)),
+    togglePin: (id) => runInAction(() => demo.togglePin(id)),
+    toggleMute: (id) => runInAction(() => demo.toggleMute(id)),
+  }), [demo]);
 
-  return { items, refreshing, refresh, actions };
+  return { items: demo.ordered, seeded: demo.seeded, refreshing, refresh, actions };
 }

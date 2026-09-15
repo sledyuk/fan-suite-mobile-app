@@ -1,14 +1,18 @@
 import { LegendList, type LegendListRenderItemProps } from '@legendapp/list/react-native';
 import { Stack } from 'expo-router';
-import { ArrowDownLeft, ArrowUpRight, Banknote, Gift, Lock, RotateCcw } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, Banknote, Gift, Lock, RotateCcw, Wallet } from 'lucide-react-native';
+import { observer } from 'mobx-react-lite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { DebugButton } from '@/components/DebugButton';
+import { EmptyState } from '@/components/EmptyState';
+import { useStores } from '@/hooks/useStores';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { listTime } from '@/lib/time';
 import { CURRENCY_NAME, formatSchmeckles } from '@/lib/money';
-import { TX_LABEL, WALLET, type Transaction, type TxKind } from '@/services/mock/wallet';
+import { TX_LABEL, type Transaction, type TxKind } from '@/services/mock/wallet';
 import { colors, radii, spacing } from '@/theme/tokens';
 
 const ICON: Record<TxKind, React.ComponentType<{ size: number; color: string; strokeWidth: number }>> = {
@@ -18,8 +22,9 @@ const FIXTURE_NOW = Date.UTC(2026, 8, 15, 11, 0, 0);
 const keyExtractor = (t: Transaction) => t.id;
 
 /** Creator earnings in Schmeckles. Balance card stays put; activity scrolls beneath it. Payout is simulated. */
-export default function WalletScreen() {
+const WalletScreen = observer(function WalletScreen() {
   const insets = useSafeAreaInsets();
+  const { wallet, seeded } = useStores().demo;
   const [note, setNote] = useState<string | null>(null);
 
   const renderItem = useCallback(({ item: t }: LegendListRenderItemProps<Transaction>) => {
@@ -40,32 +45,35 @@ export default function WalletScreen() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Wallet' }} />
+      <Stack.Screen options={{ title: 'Wallet', headerRight: () => <DebugButton /> }} />
       <View style={styles.top}>
         <View style={styles.balance}>
           <AppText variant="caption" color={colors.primary}>Available balance</AppText>
           <View style={styles.amountRow}>
-            <AppText variant="title" color={colors.textHeading} style={styles.amount}>{formatSchmeckles(WALLET.balance, { code: false })}</AppText>
+            <AppText variant="title" color={colors.textHeading} style={styles.amount}>{formatSchmeckles(wallet.balance, { code: false })}</AppText>
             <AppText variant="name" color={colors.textMuted}>{CURRENCY_NAME}</AppText>
           </View>
-          <AppText variant="time" color={colors.textMuted}>{formatSchmeckles(WALLET.pendingPayout)} pending payout · Simulated billing</AppText>
-          <PrimaryButton label="Request payout" icon={<ArrowUpRight size={18} color={colors.bg} strokeWidth={2.25} />} onPress={() => setNote('Payout requested. In the real app this creates a transfer via the payout provider.')} style={styles.payout} />
+          <AppText variant="time" color={colors.textMuted}>{formatSchmeckles(wallet.pendingPayout)} pending payout · Simulated billing</AppText>
+          <PrimaryButton label="Request payout" icon={<ArrowUpRight size={18} color={colors.bg} strokeWidth={2.25} />} disabled={wallet.balance <= 0} onPress={() => setNote('Payout requested. In the real app this creates a transfer via the payout provider.')} style={styles.payout} />
           {note && <AppText variant="time" color={colors.successText}>{note}</AppText>}
         </View>
         <AppText variant="caption" color={colors.textSection} style={styles.section}>Recent activity</AppText>
       </View>
       <LegendList
-        data={WALLET.transactions}
+        data={wallet.transactions}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         estimatedItemSize={56}
         recycleItems
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: insets.bottom + 88 }}
         style={styles.list}
+        ListEmptyComponent={<EmptyState icon={Wallet} title={seeded ? 'No activity yet' : 'Nothing earned yet'} body="Subscriptions, tips and PPV unlocks from fans land here." seedable={!seeded} />}
       />
     </View>
   );
-}
+});
+
+export default WalletScreen;
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },

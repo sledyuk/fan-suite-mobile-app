@@ -6,10 +6,10 @@ import { ArrowRight, Search } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppText } from '@/components/AppText';
 import { ModalLayout } from '@/components/ModalLayout';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { CONVERSATIONS } from '@/services/mock/conversations';
-import { SUITES, type Suite } from '@/services/mock/suites';
+import { suitesFor, type Suite } from '@/services/mock/suites';
 import { colors, fonts, radii, spacing } from '@/theme/tokens';
 import { PickerRow } from './PickerRow';
 
@@ -19,15 +19,15 @@ type Item =
   | { kind: 'fan'; key: string; id: string; selected: boolean }
   | { kind: 'divider'; key: string; selected: false };
 
-const FANS = CONVERSATIONS.map((c) => ({ id: c.id, fan: c.fan }));
-
 /**
  * Recipient picker. Ticking a suite ticks every fan in it. One fan → open that
  * thread. Several → "Message to (N) users", delivered separately to each.
  */
 const NewMessageScreen = observer(function NewMessageScreen() {
   const insets = useSafeAreaInsets();
-  const { billing } = useStores();
+  const { billing, demo } = useStores();
+  const FANS = useMemo(() => demo.conversations.map((c) => ({ id: c.id, fan: c.fan })), [demo.conversations]);
+  const SUITES = useMemo(() => suitesFor(demo.conversations), [demo.conversations]);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
 
@@ -47,7 +47,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
       .filter(({ fan }) => !q || fan.name.toLowerCase().includes(q) || fan.handle.toLowerCase().includes(q))
       .map<Item>(({ id }) => ({ kind: 'fan', key: `f_${id}`, id, selected: selected.has(id) }));
     return suiteRows.length && fanRows.length ? [...suiteRows, { kind: 'divider', key: 'div', selected: false }, ...fanRows] : [...suiteRows, ...fanRows];
-  }, [query, selected]);
+  }, [query, selected, FANS, SUITES]);
 
   const count = selected.size;
   const needsPro = count > 1 && !billing.isActive;   // broadcast is a Pro feature
@@ -63,7 +63,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
     if (item.kind === 'divider') return <View style={styles.divider} />;
     if (item.kind === 'suite') return <PickerRow kind="suite" suite={item.suite} selected={item.selected} onToggle={() => toggleSuite(item.suite)} />;
     return <PickerRow kind="fan" id={item.id} fan={FANS.find((f) => f.id === item.id)!.fan} selected={item.selected} onToggle={() => toggleFan(item.id)} />;
-  }, [toggleFan, toggleSuite]);
+  }, [toggleFan, toggleSuite, FANS]);
 
   return (
     <ModalLayout title="New message" onClose={() => router.back()} scroll={false}>
@@ -91,6 +91,7 @@ const NewMessageScreen = observer(function NewMessageScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ gap: spacing.md, paddingBottom: 96 + insets.bottom }}
         style={styles.list}
+        ListEmptyComponent={<AppText variant="caption" color={colors.textMuted} style={styles.empty}>No fans yet. Load demo data from the debug sheet.</AppText>}
       />
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing.md }]} pointerEvents="box-none">
         <PrimaryButton
@@ -112,6 +113,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontFamily: fonts.regular, fontSize: 15, color: colors.textPrimary, paddingVertical: 0 },
   list: { flex: 1, marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg },
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
+  empty: { textAlign: 'center', paddingTop: spacing.xxl },
   footer: { position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'flex-end', paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   // iOS 26 capsule with a soft shadow so it reads as floating over the list.
   cta: { borderRadius: 22, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 6 },

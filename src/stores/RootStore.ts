@@ -3,6 +3,7 @@ import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import { BillingStore } from './BillingStore';
 import { ChatStore } from './ChatStore';
 import { ConnectivityStore } from './ConnectivityStore';
+import { DemoDataStore } from './DemoDataStore';
 import { OutboxStore } from './OutboxStore';
 
 export class RootStore {
@@ -10,13 +11,15 @@ export class RootStore {
   outbox: OutboxStore;
   chat: ChatStore;
   billing: BillingStore;
+  demo: DemoDataStore;
 
   constructor(client: KeyValueStorage, purchases: PurchaseService, backend: BackendBilling) {
     this.connectivity = new ConnectivityStore(client);
     this.outbox = new OutboxStore(client);
     this.chat = new ChatStore();
     this.billing = new BillingStore(client, purchases, backend);
+    this.demo = new DemoDataStore(client);
   }
 
-  dispose() { this.connectivity.dispose(); this.outbox.dispose(); this.billing.dispose(); }
+  dispose() { this.connectivity.dispose(); this.outbox.dispose(); this.billing.dispose(); this.demo.dispose(); }
 }

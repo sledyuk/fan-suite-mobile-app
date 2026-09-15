@@ -1,33 +1,38 @@
 import { Stack } from 'expo-router';
+import { LayoutDashboard } from 'lucide-react-native';
+import { observer } from 'mobx-react-lite';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { DebugButton } from '@/components/DebugButton';
+import { EmptyState } from '@/components/EmptyState';
+import { useStores } from '@/hooks/useStores';
 import { formatSchmeckles } from '@/lib/money';
-import { CONVERSATIONS } from '@/services/mock/conversations';
-import { WALLET } from '@/services/mock/wallet';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { PlanCard } from './PlanCard';
 
-const online = CONVERSATIONS.filter((c) => c.online).length;
-const unread = CONVERSATIONS.reduce((n, c) => n + c.unreadCount, 0);
-
-export default function DashboardScreen() {
+const DashboardScreen = observer(function DashboardScreen() {
   const insets = useSafeAreaInsets();
+  const { demo } = useStores();
+  const online = demo.conversations.filter((c) => c.online).length;
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'Dashboard' }} />
+      <Stack.Screen options={{ title: 'Dashboard', headerRight: () => <DebugButton /> }} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
         <PlanCard />
         <View style={styles.tiles}>
-          <Tile label="This month" value={formatSchmeckles(WALLET.thisMonth)} />
-          <Tile label="Balance" value={formatSchmeckles(WALLET.balance)} />
+          <Tile label="This month" value={formatSchmeckles(demo.wallet.thisMonth)} />
+          <Tile label="Balance" value={formatSchmeckles(demo.wallet.balance)} />
           <Tile label="Fans online" value={String(online)} />
-          <Tile label="Unread" value={String(unread)} />
+          <Tile label="Unread" value={String(demo.unreadTotal)} />
         </View>
+        {!demo.seeded && <EmptyState icon={LayoutDashboard} title="Your studio is empty" body="Earnings and fan activity appear here once fans subscribe. Load the demo to see it populated." seedable />}
       </ScrollView>
     </View>
   );
-}
+});
+
+export default DashboardScreen;
 
 function Tile({ label, value }: { label: string; value: string }) {
   return (

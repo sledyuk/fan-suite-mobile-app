@@ -4,6 +4,7 @@ import { Bell, ChevronRight, CircleHelp, Info, RotateCcw, Shield, type LucideIco
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
+import { DebugButton } from '@/components/DebugButton';
 import { Avatar } from '@/components/Avatar';
 import { useSecretTap } from '@/hooks/useSecretTap';
 import { container } from '@/services/container';
@@ -16,14 +17,14 @@ export default function MoreScreen() {
   const insets = useSafeAreaInsets();
   const secret = useSecretTap(() => router.push('/hire'));
 
-  const reset = () => Alert.alert('Reset demo data?', 'Clears the outbox, the plan and the mock server, then reseeds the history.', [
+  const reset = () => Alert.alert('Reset to empty account?', 'Clears chats, wallet, plan, outbox and the mock server.', [
     { text: 'Cancel', style: 'cancel' },
     { text: 'Reset', style: 'destructive', onPress: () => container.resetAll() },
   ]);
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: 'More' }} />
+      <Stack.Screen options={{ title: 'More', headerRight: () => <DebugButton /> }} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 88 }]}>
         <View style={styles.profile}>
           <Avatar source={ME.avatar} name={ME.name} size={56} />
@@ -44,7 +45,7 @@ export default function MoreScreen() {
         </Group>
 
         <Group>
-          <Row icon={RotateCcw} label="Reset demo data" hint="Outbox, plan, mock server" tone={colors.error} onPress={reset} last />
+          <Row icon={RotateCcw} label="Reset to empty account" hint="Chats, wallet, plan, outbox, mock server" tone={colors.error} onPress={reset} last />
         </Group>
       </ScrollView>
     </View>

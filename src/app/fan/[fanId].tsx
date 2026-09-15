@@ -1,10 +1,13 @@
 import { Redirect, useLocalSearchParams } from 'expo-router';
+import { observer } from 'mobx-react-lite';
+import { useStores } from '@/hooks/useStores';
 import FanDetailsScreen from '@/screens/fan-details';
-import { findConversation } from '@/services/mock/conversations';
 
-export default function FanDetailsRoute() {
+const FanDetailsRoute = observer(function FanDetailsRoute() {
   const { fanId } = useLocalSearchParams<{ fanId: string }>();
-  const conversation = findConversation(fanId);
+  const conversation = useStores().demo.find(fanId);
   if (!conversation) return <Redirect href="/chats" />;
   return <FanDetailsScreen conversation={conversation} />;
-}
+});
+
+export default FanDetailsRoute;

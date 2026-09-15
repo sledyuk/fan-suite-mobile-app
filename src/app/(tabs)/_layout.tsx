@@ -1,14 +1,14 @@
 import { NativeTabs } from "expo-router/unstable-native-tabs";
-import { totalUnread } from "@/services/mock/conversations";
+import { observer } from "mobx-react-lite";
+import { useStores } from "@/hooks/useStores";
 import { colors } from "@/theme/tokens";
-
-const unread = totalUnread();
 
 /**
  * Native tab bar. On iOS 26 it is Liquid Glass, minimizes while scrolling down,
  * and the `search` role splits into its own glass button on the right.
  */
-export default function TabsLayout() {
+const TabsLayout = observer(function TabsLayout() {
+  const unread = useStores().demo.unreadTotal;
   return (
     <NativeTabs
       minimizeBehavior="onScrollDown"
@@ -38,4 +38,6 @@ export default function TabsLayout() {
       </NativeTabs.Trigger>
     </NativeTabs>
   );
-}
+});
+
+export default TabsLayout;
