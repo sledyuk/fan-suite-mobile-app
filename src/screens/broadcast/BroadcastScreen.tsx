@@ -22,12 +22,15 @@ export default function BroadcastScreen({ fanIds }: Props) {
   const fans = demo.conversations.filter((c) => fanIds.includes(c.id));
   const count = fans.length;
   const [sent, setSent] = useState<Sent[]>([]);
-  // Each fan gets a normal outbox item, so the broadcast is persisted, drained in order, retried and de-duplicated
-  // exactly like a message typed in that fan's chat.
-  const broadcast = (text: string) => {
-    try { runInAction(() => { for (const c of fans) outbox.enqueue(c.id, text); }); }
-    catch { return; }
+  const [error, setError] = useState<string | null>(null);
+  // Each fan gets a normal outbox item, queued in ONE durable write, so the broadcast is persisted, drained in order,
+  // retried and de-duplicated like a message typed in that fan's chat, and a failed write queues nobody.
+  const broadcast = (text: string): boolean => {
+    try { runInAction(() => outbox.enqueueMany(fans.map((c) => c.id), text)); }
+    catch { setError("Couldn't save this message on the device. Your text is kept, try again."); return false; }
+    setError(null);
     setSent((s) => [...s, { id: `${Date.now()}`, text, at: Date.now() }]);
+    return true;
   };
 
   return (
@@ -63,7 +66,7 @@ export default function BroadcastScreen({ fanIds }: Props) {
           )}
         </ScrollView>
         <View style={styles.composer}>
-          <Composer onSend={broadcast} autoFocus />
+          <Composer onSend={broadcast} errorText={error} autoFocus />
         </View>
       </KeyboardAvoidingView>
     </ModalLayout>

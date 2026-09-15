@@ -32,6 +32,13 @@ export class OutboxStore {
     try { this.storage.set(KEY, JSON.stringify(this.items)); } catch (e) { this.items.pop(); throw e; }
     return this.items[this.items.length - 1]!;
   }
+  /** Queues the same text for several chats as one durable write: either every recipient is queued or none is. */
+  enqueueMany(chatIds: string[], text: string): OutboxItem[] {
+    const start = this.items.length;
+    const created = chatIds.map((chatId) => { const item: OutboxItem = { clientId: Crypto.randomUUID(), chatId, text, createdAt: Date.now(), status: 'pending', attempts: 0 }; this.items.push(item); return item; });
+    try { this.storage.set(KEY, JSON.stringify(this.items)); } catch (e) { this.items.splice(start); throw e; }
+    return created;
+  }
   markSending(id: string) { const it = this.find(id); it.status = 'sending'; it.attempts += 1; }
   markPending(id: string, nextAttemptAt?: number) { const it = this.find(id); it.status = 'pending'; it.error = undefined; it.nextAttemptAt = nextAttemptAt; }
   markFailed(id: string, error: OutboxError) { const it = this.find(id); it.status = 'failed'; it.error = error; }

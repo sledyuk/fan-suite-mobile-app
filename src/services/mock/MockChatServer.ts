@@ -23,6 +23,18 @@ interface PersistedThread {
 }
 
 const KEY = (chatId: string) => `chat.v2.${chatId}`;
+const LEGACY_KEY = (chatId: string) => `chat.v1.${chatId}`;
+
+/** v1 stored the whole thread, seed included. Split it back into seed parameters plus tail so nothing accepted is lost. */
+function migrateV1(raw: string, seed: number): { thread: Thread; persisted: PersistedThread } {
+  const old = JSON.parse(raw) as { messages: ServerMessage[]; acceptedByClientId: Record<ClientId, ServerId>; nextSeq: number };
+  const seeded = old.messages.filter((m) => m.id.startsWith('h_'));
+  const tail = old.messages.filter((m) => !m.id.startsWith('h_'));
+  const last = seeded[seeded.length - 1];
+  const seedParams: Thread['seed'] = { count: seeded.length, seed, ...(last ? { endAt: last.createdAt } : {}) };
+  const persisted: PersistedThread = { tail, acceptedByClientId: old.acceptedByClientId, nextSeq: old.nextSeq, seed: seedParams };
+  return { thread: { messages: old.messages, acceptedByClientId: old.acceptedByClientId, nextSeq: old.nextSeq, seed: seedParams }, persisted };
+}
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface ServerOptions {
@@ -40,7 +52,13 @@ export class MockChatServer implements ChatApi {
     let t = this.threads.get(chatId);
     if (!t) {
       const raw = this.storage.get(KEY(chatId));
-      if (raw) {
+      const legacy = raw ? null : this.storage.get(LEGACY_KEY(chatId));
+      if (legacy) {
+        const m = migrateV1(legacy, this.opts.seedFor?.(chatId) ?? 42);
+        t = m.thread;
+        this.storage.set(KEY(chatId), JSON.stringify(m.persisted));
+        this.storage.remove(LEGACY_KEY(chatId));
+      } else if (raw) {
         const p = JSON.parse(raw) as PersistedThread;
         t = { messages: [...generateHistory(p.seed.count, p.seed.seed, p.seed.endAt), ...p.tail], acceptedByClientId: p.acceptedByClientId, nextSeq: p.nextSeq, seed: p.seed };
       } else {
@@ -82,10 +100,20 @@ export class MockChatServer implements ChatApi {
    * Two separate writes would leave a window where the message is durable but its duplicate protection is not.
    */
   protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }, remember = true): ServerMessage {
-    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: input.attachment?.kind ?? 'text', ...(input.attachment ? { attachment: input.attachment } : {}) };
+    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: input.attachment?.kind ?? 'text', ...(input.attachment ? { attachment: input.attachment } : {}) };
     t.messages.push(msg);
+    t.nextSeq += 1;
     if (remember) t.acceptedByClientId[input.clientId] = msg.id;
-    this.persist(chatId, t);
+    try {
+      this.persist(chatId, t);
+    } catch (e) {
+      // The write failed, so nothing was accepted: undo the in-memory mutation. Otherwise a retry against this same
+      // instance would be answered from memory with a message that no longer exists after a restart.
+      t.messages.pop();
+      t.nextSeq -= 1;
+      if (remember) delete t.acceptedByClientId[input.clientId];
+      throw e;
+    }
     return msg;
   }
 

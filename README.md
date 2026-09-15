@@ -63,7 +63,7 @@ npm run typecheck
 git diff --check
 ```
 
-Current automated result: **10 Jest suites, 34 tests passed**, TypeScript typecheck passed, and `git diff --check` passed.
+Current automated result: **10 Jest suites, 37 tests passed**, TypeScript typecheck passed, and `git diff --check` passed.
 
 Demo platform: iOS. Tested manually on an iPhone running iOS 27 (exact model: _fill in before sending_) and on the iOS Simulator. Android: run `npm run android`; it was opened briefly but not functionally tested.
 
@@ -93,6 +93,12 @@ An external code review of the first submission candidate reproduced five messag
 6. **Every accepted send serialized the full 50,000-message history.** The server now persists only the accepted tail plus seed parameters and regenerates the seed on load. This removed the largest synchronous JSON write from the send path; frame-time evidence on a device is still owed (see below).
 
 The broadcast screen previously kept sent messages in component state only. It now enqueues one outbox item per recipient, so broadcasts are persisted, drained, retried and de-duplicated like any other send.
+
+A second review pass found three follow-ups, also fixed and tested:
+
+7. **A failed server write could still confirm delivery.** The server mutated memory before persisting, so a retry on the same instance was answered from memory with a message that vanished on restart. The mutation is now rolled back when the write throws.
+8. **The `chat.v2` storage format abandoned `chat.v1` data.** Legacy threads are now migrated on first read: seed parameters are recovered from the stored seed messages and only the accepted tail is kept.
+9. **Broadcast cleared the draft on a persistence error and could queue a partial batch.** Recipients are now queued in one durable write via `enqueueMany`; on failure nobody is queued, the draft is kept and an error is shown.
 
 ## How this application was built
 

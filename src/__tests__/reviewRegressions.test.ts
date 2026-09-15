@@ -133,3 +133,47 @@ test('finding 5: retries wait for the backoff deadline instead of firing on the 
   expect(s.root.outbox.items[0]).toMatchObject({ status: 'failed', error: { code: 'NETWORK', recoverable: true } });
   s.done(); jest.useRealTimers();
 });
+
+test('round 2, finding 1: a failed durable write is rolled back in memory, so a retry on the same instance is not answered from memory', async () => {
+  const kv = new FlakyKV(); const faults = defaultFaults();
+  const server = new MockChatServer(kv, () => faults, { seedCount: 0 });
+  server.messageCount(CHAT);
+  kv.failWrites = true;
+  await expect(server.send({ chatId: CHAT, clientId: 'c1', text: 'ghost', createdAt: 1 })).rejects.toThrow('disk full');
+  expect(server.allMessages(CHAT)).toHaveLength(0);
+  kv.failWrites = false;
+  const retried = await server.send({ chatId: CHAT, clientId: 'c1', text: 'ghost', createdAt: 1 });
+  expect(retried.seq).toBe(1);
+  const restarted = new MockChatServer(kv, () => faults, { seedCount: 0 });
+  expect(restarted.allMessages(CHAT).map((m) => m.text)).toEqual(['ghost']);
+  expect((await restarted.send({ chatId: CHAT, clientId: 'c1', text: 'ghost', createdAt: 1 })).id).toBe(retried.id);
+});
+
+test('round 2, finding 2: chat.v1 threads are migrated, keeping accepted messages and clientId mappings', async () => {
+  const kv = new MemoryKV(); const faults = defaultFaults();
+  const seeded = new MockChatServer(kv, () => faults, { seedCount: 10 });
+  await seeded.send({ chatId: CHAT, clientId: 'old', text: 'from v1', createdAt: 1 });
+  const v2 = JSON.parse(kv.get(`chat.v2.${CHAT}`)!);
+  kv.set(`chat.v1.${CHAT}`, JSON.stringify({ messages: seeded.allMessages(CHAT), acceptedByClientId: v2.acceptedByClientId, nextSeq: v2.nextSeq }));
+  kv.remove(`chat.v2.${CHAT}`);
+
+  const upgraded = new MockChatServer(kv, () => faults, { seedCount: 10 });
+  expect(upgraded.allMessages(CHAT)).toEqual(seeded.allMessages(CHAT));
+  expect((await upgraded.send({ chatId: CHAT, clientId: 'old', text: 'from v1', createdAt: 1 })).seq).toBe(11);
+  expect(upgraded.messageCount(CHAT)).toBe(11);
+  expect(kv.get(`chat.v1.${CHAT}`)).toBeNull();
+  expect(JSON.parse(kv.get(`chat.v2.${CHAT}`)!).tail).toHaveLength(1);
+});
+
+test('round 2, finding 3: a broadcast is queued for all recipients or none', () => {
+  const client = new FlakyKV();
+  const { root, done } = boot(client, new MemoryKV());
+  root.connectivity.setOnline(false);
+  client.failWrites = true;
+  expect(() => root.outbox.enqueueMany(['a', 'b', 'c'], 'hello all')).toThrow('disk full');
+  expect(root.outbox.items).toHaveLength(0);
+  client.failWrites = false;
+  expect(root.outbox.enqueueMany(['a', 'b', 'c'], 'hello all').map((i) => i.chatId)).toEqual(['a', 'b', 'c']);
+  expect(JSON.parse(client.get('outbox.v1')!)).toHaveLength(3);
+  done();
+});
