@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { formatSchmeckles } from '@/lib/money';
 import { CONVERSATIONS } from '@/services/mock/conversations';
-import { ME } from '@/services/mock/participants';
 import { WALLET } from '@/services/mock/wallet';
 import { colors, radii, spacing } from '@/theme/tokens';
 import { PlanCard } from './PlanCard';
@@ -18,7 +17,6 @@ export default function DashboardScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ title: 'Dashboard' }} />
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}>
-        <AppText variant="caption" color={colors.textMuted}>Welcome back, {ME.name.split(' ')[0]}</AppText>
         <PlanCard />
         <View style={styles.tiles}>
           <Tile label="This month" value={formatSchmeckles(WALLET.thisMonth)} />

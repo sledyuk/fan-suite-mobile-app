@@ -28,7 +28,7 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>Wallet</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "wallet.pass", selected: "wallet.pass.fill" }} md={{ default: "account_balance_wallet", selected: "account_balance_wallet" }} />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="more/index">
+      <NativeTabs.Trigger name="more">
         <NativeTabs.Trigger.Label>More</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf={{ default: "ellipsis.circle", selected: "ellipsis.circle.fill" }} md={{ default: "more_horiz", selected: "more_horiz" }} />
       </NativeTabs.Trigger>

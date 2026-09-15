@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import MoreScreen from '@/screens/more';
 
-export default function MoreScreen() {
-  return <View style={{ flex: 1 }} />;
+export default function MoreRoute() {
+  return <MoreScreen />;
 }

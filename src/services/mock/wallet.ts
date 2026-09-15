@@ -25,7 +25,19 @@ export const WALLET = {
     { id: 't5', kind: 'payout', amount: -500, counterparty: 'Bank', at: h(48) },
     { id: 't6', kind: 'subscription', amount: 40, counterparty: 'Beth Smith', at: h(70) },
     { id: 't7', kind: 'tip', amount: 5, counterparty: 'Summer Smith', at: h(96) },
+    ...history(),
   ] satisfies Transaction[],
 };
+
+/** Deterministic older activity so the list actually scrolls. */
+function history(): Transaction[] {
+  const fans = ['Rick Sanchez', 'Unity', 'Birdperson', 'Beth Smith', 'Summer Smith', 'Mr. Meeseeks', 'Noob-Noob', 'Squanchy'];
+  const kinds: TxKind[] = ['subscription', 'tip', 'ppv', 'subscription', 'tip'];
+  const amounts: Record<TxKind, number> = { subscription: 40, tip: 10, ppv: 30, refund: 0, payout: 0 };
+  return Array.from({ length: 24 }, (_, i) => {
+    const kind = kinds[i % kinds.length];
+    return { id: `h${i}`, kind, amount: amounts[kind] + (i % 3) * 5, counterparty: fans[i % fans.length], at: h(120 + i * 19) };
+  });
+}
 
 export const TX_LABEL: Record<TxKind, string> = { subscription: 'Subscription', tip: 'Tip', ppv: 'PPV unlock', refund: 'Refund', payout: 'Payout' };
