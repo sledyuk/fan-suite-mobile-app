@@ -37,7 +37,7 @@ export default function RootLayout() {
           {/* New message: a modal with its own stack (picker → broadcast). */}
           <Stack.Screen name="new-message" options={{ presentation: 'modal' }} />
           <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="hire" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="about" options={{ presentation: 'modal' }} />
           {/* Debug controls: fault injection + reset. Page sheet like the others (formSheet overlapped the header on iOS 26). */}
           <Stack.Screen name="dev" options={{ presentation: 'modal' }} />
         </Stack>

@@ -7,7 +7,6 @@ import { Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
-import { useSecretTap } from '@/hooks/useSecretTap';
 import { useStores } from '@/hooks/useStores';
 import { ME } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
@@ -17,7 +16,6 @@ const version = `${Constants.expoConfig?.version ?? '1.0.0'} · ${__DEV__ ? 'dev
 const MoreScreen = observer(function MoreScreen() {
   const insets = useSafeAreaInsets();
   const { settings } = useStores();
-  const secret = useSecretTap(() => router.push('/hire'));
 
   return (
     <View style={styles.screen}>
@@ -38,7 +36,7 @@ const MoreScreen = observer(function MoreScreen() {
 
         <Group>
           <Row icon={CircleHelp} label="Help" hint="Guides and support" />
-          <Row icon={Info} label="About" hint={version} onPress={secret} last />
+          <Row icon={Info} label="About" hint={version} onPress={() => router.push('/about')} last />
         </Group>
 
         <Group>
