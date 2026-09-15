@@ -14,16 +14,19 @@ export function mulberry32(seed: number): () => number {
 }
 
 const GIFT_AMOUNTS = [5, 10, 20, 50];
+/** Fixed anchor (not Date.now) so the seeded history never changes between runs. */
+export const DEFAULT_END_AT = Date.UTC(2026, 8, 15, 11, 0, 0);
 
 /**
  * Deterministic thread: alternating fan/creator lines taken from SCRIPT,
- * ~10% of fan lines replaced by a gift event. Timestamps advance 30s-10min.
- * The generator owns seq/ids so a fresh mock server can reseed identically.
+ * ~10% of fan lines replaced by a gift event. Timestamps advance 30s-10min and are
+ * shifted so the last message sits at `endAt`. The generator owns seq/ids so a
+ * fresh mock server can reseed identically.
  */
-export function generateHistory(count: number, seed = 42, startAt = Date.UTC(2026, 0, 1)): ServerMessage[] {
+export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT): ServerMessage[] {
   const rnd = mulberry32(seed);
   const out: ServerMessage[] = new Array(count);
-  let t = startAt;
+  let t = 0;
   let pair = SCRIPT[Math.floor(rnd() * SCRIPT.length)];
   for (let i = 0; i < count; i++) {
     const fanTurn = i % 2 === 0;
@@ -41,5 +44,8 @@ export function generateHistory(count: number, seed = 42, startAt = Date.UTC(202
       createdAt: t,
     };
   }
+  // Shift so the newest message lands on `endAt`; keeps the thread "recent" and still deterministic.
+  const shift = endAt - t;
+  for (const m of out) m.createdAt += shift;
   return out;
 }

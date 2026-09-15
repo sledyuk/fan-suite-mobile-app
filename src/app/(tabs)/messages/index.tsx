@@ -1,5 +1,5 @@
-import { View } from "react-native";
+import { ChatScreen } from '@/features/chat/ChatScreen';
 
-export default function MessagesScreen() {
-  return <View style={{ flex: 1 }} />;
+export default function MessagesRoute() {
+  return <ChatScreen />;
 }

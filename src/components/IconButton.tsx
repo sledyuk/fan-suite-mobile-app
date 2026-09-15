@@ -1,0 +1,31 @@
+import { Pressable, StyleSheet, type PressableProps } from 'react-native';
+import { colors, radii } from '@/theme/tokens';
+
+interface Props extends Omit<PressableProps, 'style'> {
+  accessibilityLabel: string; // required: every icon-only control must be readable
+  size?: number;
+  filled?: boolean;
+  children: React.ReactNode;
+}
+
+export function IconButton({ size = 44, filled, children, ...rest }: Props) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      hitSlop={8}
+      {...rest}
+      style={({ pressed }) => [
+        styles.base,
+        { width: size, height: size, opacity: pressed ? 0.6 : 1 },
+        filled && styles.filled,
+      ]}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: { alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg },
+  filled: { backgroundColor: colors.bgSubtle, borderWidth: 1, borderColor: colors.border },
+});
