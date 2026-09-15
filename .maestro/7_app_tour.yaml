@@ -1,0 +1,45 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/dev?run=reset
+- openLink: exp://127.0.0.1:8081/--/dev?run=seed
+- openLink: exp://127.0.0.1:8081/--/dashboard
+- extendedWaitUntil: { visible: "Dashboard", timeout: 10000 }
+- startRecording: ../rec/7_app_tour
+- waitForAnimationToEnd
+- swipe: { direction: UP, duration: 900 }
+- waitForAnimationToEnd
+- swipe: { direction: DOWN, duration: 900 }
+- tapOn: "Wallet"
+- waitForAnimationToEnd
+- swipe: { direction: UP, duration: 900 }
+- waitForAnimationToEnd
+- tapOn: "Messages"
+- waitForAnimationToEnd
+- tapOn: ".*Rick Sanchez.*"
+- extendedWaitUntil: { visible: "Back to messages", timeout: 10000 }
+- waitForAnimationToEnd
+- tapOn: "Full details for Rick Sanchez"
+- extendedWaitUntil: { visible: "Fan details", timeout: 5000 }
+- waitForAnimationToEnd
+- swipe: { direction: UP, duration: 900 }
+- waitForAnimationToEnd
+- tapOn: "Close"
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- swipe: { direction: DOWN, duration: 700 }
+- waitForAnimationToEnd
+- tapOn: "Add 🔥"
+- tapOn: "Add 😂"
+- tapOn: { point: "43%,90%" }
+- inputText: " Rick, the stream tonight is on"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 15000 }
+- waitForAnimationToEnd
+- tapOn: "Back to messages"
+- waitForAnimationToEnd
+- tapOn: "More"
+- waitForAnimationToEnd
+- tapOn: "About.*"
+- extendedWaitUntil: { visible: "Contact", timeout: 5000 }
+- waitForAnimationToEnd
+- stopRecording
+- tapOn: "Close"
