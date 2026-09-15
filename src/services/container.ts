@@ -1,6 +1,9 @@
 import type { ChatApi } from '@/services/api/ChatApi';
 import { CONVERSATIONS } from '@/services/mock/conversations';
+import type { PurchaseOutcome } from '@/services/api/BillingApi';
+import { MockBackendBilling } from '@/services/mock/MockBackendBilling';
 import { MockChatServer } from '@/services/mock/MockChatServer';
+import { MockPurchases } from '@/services/mock/MockPurchases';
 import { NaiveChatServer } from '@/services/mock/NaiveChatServer';
 import { clientKV, serverKV } from '@/storage/kvStorage';
 import { RootStore } from '@/stores/RootStore';
@@ -9,7 +12,13 @@ import { startWorkers } from '@/workers/startWorkers';
 const seedFor = (chatId: string) => CONVERSATIONS.find((c) => c.id === chatId)?.seed ?? 42;
 const listeners = new Set<() => void>();
 
-let root = new RootStore(clientKV);
+/** Dev-sheet knobs for the billing mocks. */
+export const billingConfig: { outcome: PurchaseOutcome; confirmDelayMs: number } = { outcome: 'success', confirmDelayMs: 0 };
+const purchases = new MockPurchases(() => billingConfig, clientKV);
+const backend = new MockBackendBilling(() => billingConfig);
+
+let root = new RootStore(clientKV, purchases, backend);
+if (root.billing.isAwaiting) void root.billing.checkAgain();   // purchase confirmed while we were away?
 const faults = () => root.connectivity.faults;
 let server: MockChatServer = new MockChatServer(serverKV, faults, { seedFor });
 let stop = startWorkers(root, server);
@@ -39,7 +48,8 @@ export const container = {
   resetAll() {
     stop(); root.dispose();
     clientKV.clear(); serverKV.clear();
-    root = new RootStore(clientKV); buggy = false;
+    root = new RootStore(clientKV, purchases, backend); buggy = false;
+    billingConfig.outcome = 'success'; billingConfig.confirmDelayMs = 0;
     server = new MockChatServer(serverKV, faults, { seedFor });
     stop = startWorkers(root, server);
     listeners.forEach((l) => l());

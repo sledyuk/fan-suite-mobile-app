@@ -1,5 +1,7 @@
 import { MemoryKV } from '@/storage/MemoryKV';
 import { MockChatServer } from '@/services/mock/MockChatServer';
+import { MockBackendBilling } from '@/services/mock/MockBackendBilling';
+import { MockPurchases } from '@/services/mock/MockPurchases';
 import { RootStore } from '@/stores/RootStore';
 import { startWorkers } from '@/workers/startWorkers';
 
@@ -8,7 +10,8 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 
 /** One app session: fresh stores over the client storage, fresh server over its own storage. */
 const boot = async (client: MemoryKV, serverKV: MemoryKV) => {
-  const root = new RootStore(client);
+  const cfg = { outcome: 'success' as const, confirmDelayMs: 0 };
+  const root = new RootStore(client, new MockPurchases(() => cfg, client), new MockBackendBilling(() => cfg));
   const api = new MockChatServer(serverKV, () => root.connectivity.faults, { seedCount: 10 });
   const stop = startWorkers(root, api);
   const page = await api.getPage(CHAT, null, 50).catch(() => null);      // initial load, tolerated offline
