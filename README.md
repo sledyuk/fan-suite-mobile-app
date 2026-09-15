@@ -25,10 +25,11 @@ No real store account, backend, or private credential is required. The mock uses
 
 ### Chat and recovery
 
-- Sending persists a message to `OutboxStore` before it is queued. Each item receives a stable `clientId` from `expo-crypto`.
-- Pending outbox items survive a force-quit/restart. A `sending` item is reopened as `pending` during hydration.
-- `MockChatServer` persists accepted messages and its `clientId -> server message` map separately from the client outbox. A retry of an accepted send returns the original server message instead of appending another one.
-- Reconnect synchronizes incoming messages before draining outgoing messages, so the server assigns the final order and missed incoming messages appear first.
+- Sending writes the message to `OutboxStore` storage synchronously before `enqueue` returns. If that write throws, the item is rolled back, the composer keeps the draft and shows an error. Each item receives a stable `clientId` from `expo-crypto`.
+- Pending outbox items survive a force-quit/restart. A `sending` item is reopened as `pending` during hydration, and any backoff deadline is cleared.
+- `MockChatServer` persists accepted messages and its `clientId -> server message` map separately from the client outbox, committed together in a single storage write. A retry of an accepted send returns the original server message instead of appending another one. Only the accepted tail is serialized; the deterministic 50,000-message seed is regenerated on load.
+- Reconnect, and a cold start while already online, synchronize every chat that has queued sends (not only the open thread) before draining, so the server assigns the final order and missed incoming messages appear first.
+- Network retries wait for a per-item backoff deadline (0.5 s, 1.5 s, 4 s) before the item is marked failed. Once the mock backend confirms paid access, sends that failed with `PAYMENT_REQUIRED` are requeued with their original `clientId`.
 - The client upserts by server ID and retires an outbox item by `clientId`; repeated sync responses and a response/sync race do not create duplicate bubbles or reorder an unchanged thread.
 - Sends are drained one at a time in local order. Recoverable failures can be retried; a non-recoverable blocked or payment-required failure remains visible with its text and explanation. A failed item blocks later sends in the same chat until it is retried or discarded.
 - History is loaded in pages of 50 through `LegendList`. Seeded demo mode creates deterministic 50,000-message histories.
@@ -62,7 +63,11 @@ npm run typecheck
 git diff --check
 ```
 
-Current automated result: **9 Jest suites, 28 tests passed**, TypeScript typecheck passed, and `git diff --check` passed. The main implementation and manual testing focus was an iPhone running iOS 27, where the chat flow was made workable end to end.
+Current automated result: **10 Jest suites, 34 tests passed**, TypeScript typecheck passed, and `git diff --check` passed.
+
+Demo platform: iOS. Tested manually on an iPhone running iOS 27 (exact model: _fill in before sending_) and on the iOS Simulator. Android: run `npm run android`; it was opened briefly but not functionally tested.
+
+Time spent: _fill in before sending_.
 
 Focused coverage includes:
 
@@ -73,7 +78,21 @@ Focused coverage includes:
 - duplicate suppression when sync races a send;
 - delayed purchase confirmation, duplicate events, cancellation/failure preservation, restore, and billing restart recovery;
 - deterministic 50,000-message generation and backwards pagination;
-- outbox persistence and thread ordering.
+- outbox persistence and thread ordering;
+- one regression test per code-review finding below (`src/__tests__/reviewRegressions.test.ts`).
+
+## Review findings and fixes
+
+An external code review of the first submission candidate reproduced five message-safety defects with targeted checks. Each is fixed and covered by a test that failed before the change:
+
+1. **Failed persistence still reported a message as queued.** Persistence ran in a MobX reaction whose errors never reached the sender. `enqueue` now writes synchronously and throws on failure; the composer keeps the text and shows an error.
+2. **Server acceptance and duplicate protection were two writes.** An interruption between them left an accepted message without its `clientId` mapping, so a restart plus retry produced two copies. Message and mapping are now committed in one write.
+3. **Reconnect skipped chats that had not been reopened.** Only instantiated threads were synchronized, so draining from the chat list could send before recovering incoming messages. Sync now covers every chat with outbox items and also runs on cold start while online.
+4. **Subscribing did not unblock a payment-required message.** The failed item stayed failed after confirmation and blocked the chat. Confirmed access now requeues those items; tapping one retries instead of reopening the paywall.
+5. **Retry backoff was bypassed.** Marking the item pending triggered the drain reaction immediately. The deadline now lives on the item and the drainer honours it.
+6. **Every accepted send serialized the full 50,000-message history.** The server now persists only the accepted tail plus seed parameters and regenerates the seed on load. This removed the largest synchronous JSON write from the send path; frame-time evidence on a device is still owed (see below).
+
+The broadcast screen previously kept sent messages in component state only. It now enqueues one outbox item per recipient, so broadcasts are persisted, drained, retried and de-duplicated like any other send.
 
 ## Requirement status and limitations
 
