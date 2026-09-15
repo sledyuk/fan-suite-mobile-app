@@ -21,3 +21,4 @@
 - Fan Details opens as a native iOS page sheet via `Stack.Screen options={{ presentation: 'modal' }}` on `app/fan/[fanId]`. Read-only: the creator cannot edit fan details, so no pencil icons.
 - Fan profile data lives on each conversation fixture (`FanProfile`): bio, location, suite, rebill, presence, buying power, note.
 - Open question parked: the brief's paywall was written from the fan side; on the creator app "paid access" needs a rethink before that step.
+- Investigated "modal should show dark card-stack like the Expo docs video": that video is iOS 18. On iOS 26/27 UIKit's page sheet shrinks the parent only slightly and the sheet covers it; the grey strip above the sheet is the *dimmed parent screen*, not a backdrop, so there is no black region to colour. Tried root background black (expo-system-ui) and dark appearance: no effect, reverted. Options: accept platform style, or build a custom card-stack (transparent modal + reanimated scaling of the navigator).
