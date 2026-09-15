@@ -35,9 +35,9 @@ export default function RootLayout() {
           <Stack.Screen name="fan/[fanId]" options={{ presentation: 'modal' }} />
           {/* New message: a modal with its own stack (picker → broadcast). */}
           <Stack.Screen name="new-message" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="paywall" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.7, 0.95], sheetGrabberVisible: true, sheetCornerRadius: 30 }} />
-          {/* Debug controls: fault injection + reset. Native form sheet. */}
-          <Stack.Screen name="dev" options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 0.95], sheetGrabberVisible: true, sheetCornerRadius: 30 }} />
+          <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
+          {/* Debug controls: fault injection + reset. Page sheet like the others (formSheet overlapped the header on iOS 26). */}
+          <Stack.Screen name="dev" options={{ presentation: 'modal' }} />
         </Stack>
         </StoresProvider>
       </SafeAreaProvider>
