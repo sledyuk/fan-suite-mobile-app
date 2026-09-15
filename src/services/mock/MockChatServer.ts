@@ -1,5 +1,5 @@
 import type { ChatApi } from '../api/ChatApi';
-import { SendError, type ClientId, type ServerId, type ServerMessage } from '../api/types';
+import { SendError, type Attachment, type ClientId, type ServerId, type ServerMessage } from '../api/types';
 import type { KeyValueStorage } from '@/storage/KeyValueStorage';
 import type { Faults } from './faults';
 import { generateHistory } from './historyGenerator';
@@ -68,8 +68,8 @@ export class MockChatServer implements ChatApi {
   }
 
   /** Persist the message, then decide whether the client gets to see the response. */
-  protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number }): ServerMessage {
-    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: 'text' };
+  protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }): ServerMessage {
+    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: input.attachment?.kind ?? 'text', ...(input.attachment ? { attachment: input.attachment } : {}) };
     t.messages.push(msg);
     this.persist(chatId, t);
     return msg;
@@ -80,7 +80,7 @@ export class MockChatServer implements ChatApi {
     if (f.dropNextResponse) { f.dropNextResponse = false; throw new SendError('NETWORK', true, 'Response lost'); }
   }
 
-  async send(input: { chatId: string; clientId: ClientId; text: string; createdAt: number }): Promise<ServerMessage> {
+  async send(input: { chatId: string; clientId: ClientId; text: string; createdAt: number; attachment?: Attachment }): Promise<ServerMessage> {
     await this.gate();
     this.maybeFail();
     const t = this.thread(input.chatId);

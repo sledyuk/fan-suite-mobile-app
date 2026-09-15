@@ -5,7 +5,7 @@ import { MockChatServer } from './MockChatServer';
  * no idempotency key, so a retry after a lost response inserts the message again.
  */
 export class NaiveChatServer extends MockChatServer {
-  override async send(input: { chatId: string; clientId: string; text: string; createdAt: number }) {
+  override async send(input: { chatId: string; clientId: string; text: string; createdAt: number; attachment?: import('../api/types').Attachment }) {
     await this.gate();
     this.maybeFail();
     const t = this.thread(input.chatId);

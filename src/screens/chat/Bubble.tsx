@@ -11,6 +11,7 @@ import { formatTime } from '@/lib/time';
 import type { OutboxItem, ServerMessage } from '@/services/api/types';
 import type { Participant } from '@/services/mock/participants';
 import { colors, radii, spacing } from '@/theme/tokens';
+import { AttachmentView } from './AttachmentView';
 import { StatusLine, hint } from './StatusLine';
 
 type Props =
@@ -51,7 +52,8 @@ export function Bubble(props: Props) {
           accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item)}. Swipe right to delete.` : `Sending. ${item.text}`}
           style={({ pressed }) => [styles.bubble, styles.mine, !failed && styles.pending, pressed && onTap && styles.pressed]}
         >
-          <AppText>{item.text}</AppText>
+          {item.attachment && <AttachmentView attachment={item.attachment} />}
+          {!!item.text && <AppText>{item.text}</AppText>}
           <StatusLine item={item} />
         </Pressable>
       </Animated.View>
@@ -86,7 +88,10 @@ export function Bubble(props: Props) {
             <AppText style={styles.giftText}>{msg.text}</AppText>
           </View>
         ) : (
-          <AppText>{msg.text}</AppText>
+          <>
+            {msg.attachment && <AttachmentView attachment={msg.attachment} />}
+            {!!msg.text && <AppText>{msg.text}</AppText>}
+          </>
         )}
         <AppText variant="time" color={colors.textMuted} style={styles.time}>{formatTime(msg.createdAt)}</AppText>
       </View>
@@ -98,7 +103,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: 13, marginBottom: spacing.xl },
   rowTheirs: { justifyContent: 'flex-start' },
   rowMine: { justifyContent: 'flex-end' },
-  bubble: { maxWidth: '84%', borderRadius: radii.xl, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  bubble: { maxWidth: '84%', borderRadius: radii.xl, paddingHorizontal: spacing.md, paddingVertical: spacing.md },
   mine: { backgroundColor: colors.primaryTint },
   theirs: { backgroundColor: colors.bgIncoming },
   pending: { opacity: 0.7 },

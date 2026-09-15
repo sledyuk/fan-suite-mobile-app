@@ -63,6 +63,10 @@ export const Timer: IconComponent = wrap(Iconsax.TimerStart);
 export const Wifi: IconComponent = wrap(Iconsax.Wifi);
 export const Lamp: IconComponent = wrap(Iconsax.Lamp);
 
+export const Play: IconComponent = wrap(Iconsax.Play);
+export const Gallery: IconComponent = wrap(Iconsax.Gallery);
+export const Video: IconComponent = wrap(Iconsax.Video);
+
 /** Plain check mark (checkbox, delivered). Iconsax only ships ticks inside shapes. */
 export const Check: IconComponent = ({ size = 20, color = '#18181B', strokeWidth = 2 }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none"><Path d="M20 6 9 17l-5-5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></Svg>

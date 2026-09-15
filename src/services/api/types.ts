@@ -1,7 +1,10 @@
 export type ServerId = string;
 export type ClientId = string;
 export type AuthorId = 'fan' | 'creator';
-export type MessageKind = 'text' | 'gift';
+export type MessageKind = 'text' | 'gift' | 'image' | 'video';
+
+/** A picked photo or video. `uri` is a local file copied into the app's documents (survives restarts). */
+export interface Attachment { kind: 'image' | 'video'; uri: string; width?: number; height?: number; durationMs?: number }
 
 /** A message as the backend sees it: it owns the id and the final order (seq). */
 export interface ServerMessage {
@@ -13,6 +16,7 @@ export interface ServerMessage {
   text: string;
   createdAt: number; // epoch ms
   kind: MessageKind;
+  attachment?: Attachment;
 }
 
 export interface Page<T> {
@@ -40,4 +44,5 @@ export interface OutboxItem {
   status: 'pending' | 'sending' | 'failed';
   attempts: number;
   error?: OutboxError;
+  attachment?: Attachment;
 }

@@ -26,7 +26,7 @@ export async function drainOnce(root: RootStore, api: ChatApi): Promise<void> {
 
   runInAction(() => outbox.markSending(next.clientId));
   try {
-    const msg = await api.send({ chatId: next.chatId, clientId: next.clientId, text: next.text, createdAt: next.createdAt });
+    const msg = await api.send({ chatId: next.chatId, clientId: next.clientId, text: next.text, createdAt: next.createdAt, attachment: next.attachment });
     runInAction(() => { root.applyServerMessages(next.chatId, [msg]); outbox.items.some((i) => i.clientId === next.clientId) && outbox.remove(next.clientId); });
   } catch (e) {
     const err = e instanceof SendError ? e : new SendError('NETWORK', true, 'Network error');

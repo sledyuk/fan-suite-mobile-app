@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { runInAction } from 'mobx';
 import { useCallback } from 'react';
 import { useStores } from '@/hooks/useStores';
+import type { Attachment } from '@/services/api/types';
 
 export const MAX_LENGTH = 400;
 
@@ -9,10 +10,10 @@ export const MAX_LENGTH = 400;
 export function useChatActions(chatId: string) {
   const root = useStores();
 
-  const send = useCallback((text: string) => {
+  const send = useCallback((text: string, attachment?: Attachment) => {
     const trimmed = text.trim().slice(0, MAX_LENGTH);
-    if (!trimmed) return;
-    runInAction(() => root.outbox.enqueue(chatId, trimmed));
+    if (!trimmed && !attachment) return;
+    runInAction(() => root.outbox.enqueue(chatId, trimmed, { attachment }));
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }, [root, chatId]);
 

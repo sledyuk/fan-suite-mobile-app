@@ -1,4 +1,7 @@
-import { Plus, Send } from '@/components/icons';
+import { Plus, Send, Video, X } from '@/components/icons';
+import { Image } from 'expo-image';
+import { pickMedia } from '@/lib/pickMedia';
+import type { Attachment } from '@/services/api/types';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +12,7 @@ import { MAX_LENGTH } from './useChatActions';
 const QUICK = ['🔥', '❤️', '😍', '💋', '🥰', '😢', '😂', '👀', '🙏', '💜'];
 
 interface Props {
-  onSend: (text: string) => void;
+  onSend: (text: string, attachment?: Attachment) => void;
 }
 
 /**
@@ -20,8 +23,11 @@ interface Props {
 export function ThreadComposer({ onSend }: Props) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
   const trimmed = text.trim();
-  const send = () => { if (!trimmed) return; onSend(trimmed); setText(''); };
+  const canSend = !!trimmed || !!attachment;
+  const send = () => { if (!canSend) return; onSend(trimmed, attachment ?? undefined); setText(''); setAttachment(null); };
+  const attach = async () => { const a = await pickMedia(); if (a) setAttachment(a); };
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
@@ -35,7 +41,7 @@ export function ThreadComposer({ onSend }: Props) {
 
       <View style={styles.row}>
         <View style={styles.field}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Attach" hitSlop={8} style={styles.attach}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Attach photo or video" hitSlop={8} onPress={() => void attach()} style={styles.attach}>
             <Plus size={16} color={colors.bg} strokeWidth={2.5} />
           </Pressable>
           <TextInput
@@ -48,14 +54,23 @@ export function ThreadComposer({ onSend }: Props) {
             style={styles.input}
             accessibilityLabel="Message"
           />
+          {attachment && (
+            <View style={styles.chip} accessibilityLabel={attachment.kind === 'video' ? 'Video attached' : 'Photo attached'}>
+              {attachment.kind === 'image' ? <Image source={{ uri: attachment.uri }} style={styles.chipThumb} /> : <Video size={16} color={colors.textSecondary} />}
+              <AppText variant="time" color={colors.textSecondary}>{attachment.kind === 'video' ? 'video' : 'photo'}</AppText>
+              <Pressable onPress={() => setAttachment(null)} accessibilityRole="button" accessibilityLabel="Remove attachment" hitSlop={6}>
+                <X size={14} color={colors.error} strokeWidth={2.5} />
+              </Pressable>
+            </View>
+          )}
         </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Send"
-          accessibilityState={{ disabled: !trimmed }}
-          disabled={!trimmed}
+          accessibilityState={{ disabled: !canSend }}
+          disabled={!canSend}
           onPress={send}
-          style={({ pressed }) => [styles.send, !trimmed && styles.sendDisabled, pressed && styles.sendPressed]}
+          style={({ pressed }) => [styles.send, !canSend && styles.sendDisabled, pressed && styles.sendPressed]}
         >
           <Send size={20} color={colors.bg} strokeWidth={2} />
         </Pressable>
@@ -75,6 +90,8 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm },
   field: { flex: 1, minHeight: 54, maxHeight: 132, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.bg, paddingLeft: spacing.md, paddingRight: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   attach: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.textSecondary, alignItems: 'center', justifyContent: 'center' },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: colors.bgSubtle, borderRadius: radii.sm, paddingHorizontal: spacing.sm, height: 28 },
+  chipThumb: { width: 18, height: 18, borderRadius: 4 },
   input: { flex: 1, fontFamily: fonts.regular, fontSize: 15, lineHeight: 20, color: colors.textPrimary, paddingVertical: spacing.md, paddingTop: spacing.md },
   send: { width: 44, height: 44, borderRadius: radii.lg, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: 5 },
   sendPressed: { backgroundColor: colors.primaryPressed },

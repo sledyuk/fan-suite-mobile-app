@@ -7,6 +7,9 @@ import type { RootStore } from '@/stores/RootStore';
  * - once confirmed, the row shows the server's last message ("delivered" when ours),
  * - incoming fan messages update the preview and bump unread unless the thread is open.
  */
+/** List row preview for a message: media gets a label, optionally followed by its caption. */
+export const previewText = (text: string, kind?: string) => (kind === 'image' ? `📷 Photo${text ? ` · ${text}` : ''}` : kind === 'video' ? `🎬 Video${text ? ` · ${text}` : ''}` : text);
+
 export function startListSync(root: RootStore) {
   const { demo, outbox, chat } = root;
 
@@ -18,10 +21,10 @@ export function startListSync(root: RootStore) {
       for (const i of outbox.items) byChat.set(i.chatId, i);            // last one in local order
       for (const c of demo.conversations) {
         const item = byChat.get(c.id);
-        if (item) demo.setLast(c.id, { text: item.text, from: 'creator', at: item.createdAt, status: item.status === 'failed' ? 'failed' : 'sending' });
+        if (item) demo.setLast(c.id, { text: previewText(item.text, item.attachment?.kind), from: 'creator', at: item.createdAt, status: item.status === 'failed' ? 'failed' : 'sending' });
         else if (c.last.from === 'creator' && (c.last.status === 'sending' || c.last.status === 'failed')) {
           const last = chat.thread(c.id).ordered.at(-1);               // confirmed, or the failed item was deleted
-          if (last) demo.setLast(c.id, { text: last.text, from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
+          if (last) demo.setLast(c.id, { text: previewText(last.text, last.attachment?.kind), from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
         }
       }
     }),
@@ -42,7 +45,7 @@ export function startListSync(root: RootStore) {
         const incoming = fresh.filter((m) => m.authorId === 'fan').length;
         if (incoming && demo.activeChatId !== id) demo.bumpUnread(id, incoming);   // always, even while we have sends in flight
         if (outbox.forChat(id).length) continue;                         // preview: outbox projection takes precedence
-        demo.setLast(id, { text: last.text, from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
+        demo.setLast(id, { text: previewText(last.text, last.attachment?.kind), from: last.authorId, at: last.createdAt, status: last.authorId === 'creator' ? 'delivered' : undefined });
       }
     }),
   );
