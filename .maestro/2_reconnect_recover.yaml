@@ -1,0 +1,16 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: ".*Offline message 3.*"
+- startRecording: ../rec/2_reconnect_recover
+- openLink: exp://127.0.0.1:8081/--/dev?run=inject&chatId=rick
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- assertNotVisible: ".*Bring the plumbus.*"
+- openLink: exp://127.0.0.1:8081/--/dev?run=online
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 20000 }
+- assertVisible: "Offline message 3"
+- scrollUntilVisible: { element: ".*Bring the plumbus.*", direction: DOWN, timeout: 20000, speed: 40 }
+- assertVisible: ".*Do not tell Jerry.*"
+- assertVisible: "Offline message 1"
+- waitForAnimationToEnd
+- stopRecording

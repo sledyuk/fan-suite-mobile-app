@@ -135,6 +135,19 @@ There is no network. `MockChatServer` implements the same `ChatApi` interface a 
 
 Developed and tested on an iPhone (iOS 27) and the iOS Simulator. The app also runs on Android, but the tab bar, safe areas and glass surfaces are tuned for iOS and have not been adapted or verified there. Search currently matches fan name, handle and the last message of each chat only; it does not search full message history.
 
+## Scenario recordings
+
+The six required scenarios were recorded uncut on the iOS Simulator (iPhone 18 Pro, iOS 27.0) by driving the app with [Maestro](https://maestro.mobile.dev) flows kept in `.maestro/`. Each flow sets state through the debug deep links (`/dev?run=…`) and performs the user actions by tapping, so the reviewer sees the same UI a person would. The clips are delivered next to the zip as `Bogdan_Egikov_recordings/`:
+
+1. `1_offline_forcequit` — offline, three sends waiting, force-quit and relaunch, still waiting.
+2. `2_reconnect_recover` — four incoming injected while offline, reconnect, incoming appear first, queue drains in order, no duplicates.
+3. `3_lost_response` — fixed server: lost response, automatic retry, one copy; buggy server: same steps, two copies.
+4. `4_failures` — rate limited then retried, blocked with explanation, payment required.
+5. `5_paywall` — cancelled, failed, delayed confirmation (duplicate tap ignored, honest awaiting state, blocked message sent once Pro is confirmed), restore.
+6. `6_scroll_type` — fast scrolling through the 50,000-message history, then typing and sending with the keyboard open.
+
+To replay: start Metro (`npx expo start`), open the project in Expo Go on a booted simulator, then `maestro test .maestro/1_offline_forcequit.yaml` and so on in order. The flows record to `../rec/`.
+
 ## Requirement status and limitations
 
 The core implementation and focused automated tests for message safety, restart recovery, payment confirmation, restoration, failure states, pagination, and reduced motion are complete.
@@ -143,7 +156,6 @@ The following submission deliverables are not represented as completed in this r
 
 - no repeatable real-device/simulator performance profile with frame timing, dropped frames, and memory measurements;
 - no before/after performance measurement;
-- no recording of the recovery sequences;
 - iPhone/iOS 27 was manually tested and was the primary target. Android was opened briefly but not functionally tested, and its UI has not been specifically adapted. The web version was not tested;
 - no production billing, backend, moderation system, or real media upload service.
 

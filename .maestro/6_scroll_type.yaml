@@ -1,0 +1,16 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: "Back to messages"
+- startRecording: ../rec/6_scroll_type
+- repeat:
+    times: 12
+    commands:
+      - swipe: { direction: DOWN, duration: 300 }
+- waitForAnimationToEnd
+- tapOn: { point: "43%,90%" }
+- inputText: "Typing while fifty thousand messages sit behind the keyboard, still smooth"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 15000 }
+- waitForAnimationToEnd
+- stopRecording

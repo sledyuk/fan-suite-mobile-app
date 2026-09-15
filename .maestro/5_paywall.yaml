@@ -1,0 +1,37 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: ".*Tap to subscribe.*"
+- startRecording: ../rec/5_paywall
+- openLink: exp://127.0.0.1:8081/--/dev?run=outcome&value=cancelled
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: ".*Needs a subscription.*"
+- extendedWaitUntil: { visible: "Simulated billing — no real charge", timeout: 5000 }
+- tapOn: "Subscribe"
+- extendedWaitUntil: { visible: ".*Purchase cancelled.*", timeout: 5000 }
+- tapOn: "Close"
+- openLink: exp://127.0.0.1:8081/--/dev?run=outcome&value=failed
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: ".*Needs a subscription.*"
+- extendedWaitUntil: { visible: "Subscribe", timeout: 5000 }
+- tapOn: "Subscribe"
+- waitForAnimationToEnd
+- tapOn: "Close"
+- openLink: exp://127.0.0.1:8081/--/dev?run=outcome&value=success_delayed
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: ".*Needs a subscription.*"
+- extendedWaitUntil: { visible: "Subscribe", timeout: 5000 }
+- tapOn: "Subscribe"
+- tapOn: { text: "Subscribe", optional: true }
+- extendedWaitUntil: { visible: "Back to messages", timeout: 20000 }
+- extendedWaitUntil: { notVisible: ".*Tap to subscribe.*", timeout: 15000 }
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 15000 }
+- waitForAnimationToEnd
+- openLink: exp://127.0.0.1:8081/--/dev?run=forgetPlan
+- openLink: exp://127.0.0.1:8081/--/paywall
+- extendedWaitUntil: { visible: "Restore", timeout: 5000 }
+- tapOn: "Restore"
+- extendedWaitUntil: { notVisible: "Restore", timeout: 15000 }
+- waitForAnimationToEnd
+- stopRecording
+- tapOn: { text: "Close", optional: true }

@@ -1,0 +1,28 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/dev?run=reset
+- openLink: exp://127.0.0.1:8081/--/dev?run=seed
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: "Back to messages"
+- startRecording: ../rec/1_offline_forcequit
+- openLink: exp://127.0.0.1:8081/--/dev?run=offline
+- extendedWaitUntil: { visible: "You're offline. Messages will send when you're back.", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Offline message 1"
+- tapOn: { point: "90%,90%" }
+- tapOn: { point: "43%,90%" }
+- inputText: "Offline message 2"
+- tapOn: { point: "90%,90%" }
+- tapOn: { point: "43%,90%" }
+- inputText: "Offline message 3"
+- tapOn: { point: "90%,90%" }
+- assertVisible: "Sending\\. Offline message 3"
+- waitForAnimationToEnd
+- stopApp
+- launchApp
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- extendedWaitUntil: { visible: "Back to messages", timeout: 20000 }
+- assertVisible: ".*Offline message 3.*"
+- assertVisible: "Sending\\. Offline message 3"
+- waitForAnimationToEnd
+- stopRecording

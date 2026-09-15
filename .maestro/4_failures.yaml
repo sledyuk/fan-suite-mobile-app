@@ -1,0 +1,30 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: "Back to messages"
+- startRecording: ../rec/4_failures
+- openLink: exp://127.0.0.1:8081/--/dev?run=fail&code=RATE_LIMITED
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Rate limited, then retried"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { visible: "Not delivered\\. Rate limited, then retried\\. Tap to retry\\..*", timeout: 10000 }
+- tapOn: "Not delivered\\. Rate limited, then retried\\. Tap to retry\\..*"
+- extendedWaitUntil: { notVisible: ".*Tap to retry.*", timeout: 15000 }
+- openLink: exp://127.0.0.1:8081/--/dev?run=fail&code=BLOCKED
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Blocked, cannot retry"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { visible: ".*You can't message this fan.*", timeout: 10000 }
+- waitForAnimationToEnd
+- openLink: exp://127.0.0.1:8081/--/dev?run=discard&chatId=rick
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- openLink: exp://127.0.0.1:8081/--/dev?run=fail&code=PAYMENT_REQUIRED
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Needs a subscription"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { visible: ".*Tap to subscribe.*", timeout: 10000 }
+- waitForAnimationToEnd
+- stopRecording

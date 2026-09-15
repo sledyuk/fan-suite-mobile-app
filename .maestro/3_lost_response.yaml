@@ -1,0 +1,23 @@
+appId: host.exp.Exponent
+---
+- openLink: exp://127.0.0.1:8081/--/chat/rick
+- assertVisible: "Back to messages"
+- startRecording: ../rec/3_lost_response
+- openLink: exp://127.0.0.1:8081/--/dev?run=drop
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Fixed server, response lost once"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 15000 }
+- waitForAnimationToEnd
+- openLink: exp://127.0.0.1:8081/--/dev?run=buggy&on=1
+- openLink: exp://127.0.0.1:8081/--/dev?run=drop
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- tapOn: { point: "43%,90%" }
+- inputText: "Buggy server, this one duplicates"
+- tapOn: { point: "90%,90%" }
+- extendedWaitUntil: { notVisible: "Sending\\. .*", timeout: 15000 }
+- waitForAnimationToEnd
+- openLink: exp://127.0.0.1:8081/--/dev?run=buggy&on=0
+- extendedWaitUntil: { visible: "Back to messages", timeout: 5000 }
+- stopRecording
