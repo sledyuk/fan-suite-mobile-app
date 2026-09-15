@@ -24,7 +24,7 @@ type Props =
  * lives inside the bubble bottom-left. Gift messages get a 48pt icon box.
  * Outbox bubbles are dimmed while unconfirmed. A failed one keeps its look, gets a
  * red "!" badge and a "Not delivered" caption; tap = retry (or subscribe), swipe
- * right = delete. Same pattern as iMessage / WhatsApp / Telegram.
+ * left = delete (iOS convention, actions on the trailing edge). Same pattern as iMessage / WhatsApp / Telegram.
  */
 export function Bubble(props: Props) {
   const reduced = useReducedMotion();
@@ -49,7 +49,7 @@ export function Bubble(props: Props) {
           onPress={onTap}
           disabled={!onTap}
           accessibilityRole={onTap ? 'button' : undefined}
-          accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item)}. Swipe right to delete.` : `Sending. ${item.text}`}
+          accessibilityLabel={failed ? `Not delivered. ${item.text}. ${hint(item)}. Swipe left to delete.` : `Sending. ${item.text}`}
           style={({ pressed }) => [styles.bubble, styles.mine, !failed && styles.pending, pressed && onTap && styles.pressed]}
         >
           {item.attachment && <AttachmentView attachment={item.attachment} />}
@@ -62,15 +62,15 @@ export function Bubble(props: Props) {
     return (
       <ReanimatedSwipeable
         friction={2}
-        leftThreshold={40}
-        overshootLeft={false}
-        renderLeftActions={() => (
+        rightThreshold={40}
+        overshootRight={false}
+        renderRightActions={() => (
           <Pressable onPress={() => onDiscard(item.clientId)} accessibilityRole="button" accessibilityLabel="Delete message" style={styles.deleteAction}>
             <Trash2 size={20} color={colors.bg} strokeWidth={2} />
             <AppText variant="time" color={colors.bg} style={styles.deleteText}>Delete</AppText>
           </Pressable>
         )}
-        onSwipeableOpen={(dir) => { if (dir === 'left') onDiscard(item.clientId); }}
+        onSwipeableOpen={(dir) => { if (dir === 'right') onDiscard(item.clientId); }}
       >
         {bubble}
       </ReanimatedSwipeable>
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   pending: { opacity: 0.7 },
   pressed: { backgroundColor: colors.primarySoft },
   badge: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
-  deleteAction: { width: 88, marginBottom: spacing.xl, borderRadius: radii.xl, backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  deleteAction: { width: 88, marginLeft: spacing.sm, marginBottom: spacing.xl, borderRadius: radii.xl, backgroundColor: colors.error, alignItems: 'center', justifyContent: 'center', gap: 2 },
   deleteText: { fontFamily: 'Inter_500Medium' },
   time: { marginTop: spacing.sm },
   giftRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
