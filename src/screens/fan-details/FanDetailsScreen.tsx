@@ -15,7 +15,7 @@ interface Props {
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
-/** Presented as a native iOS sheet (see app/_layout.tsx). Read-only in this exercise; pencils are affordances only. */
+/** Presented as a native iOS sheet (see app/_layout.tsx). Read-only: a creator views a fan's details but cannot edit them. */
 export default function FanDetailsScreen({ conversation }: Props) {
   const { fan, profile, online } = conversation;
   const insets = useSafeAreaInsets();
@@ -34,7 +34,7 @@ export default function FanDetailsScreen({ conversation }: Props) {
           <AppText variant="caption" color={colors.primary}>{fan.handle}</AppText>
         </View>
 
-        <InfoCard title="User BIO" editable>
+        <InfoCard title="User BIO">
           <AppText variant="caption" color={colors.textSecondary}>{profile.bio}</AppText>
           <View style={styles.aiPill}>
             <Sparkles size={12} color={colors.primary} />
@@ -42,11 +42,11 @@ export default function FanDetailsScreen({ conversation }: Props) {
           </View>
         </InfoCard>
 
-        <InfoCard icon={<MapPin size={18} color={colors.textSecondary} strokeWidth={1.75} />} editable>
+        <InfoCard icon={<MapPin size={18} color={colors.textSecondary} strokeWidth={1.75} />}>
           <AppText variant="caption">{profile.location}</AppText>
         </InfoCard>
 
-        <InfoCard icon={<Heart size={18} color={colors.textMuted} strokeWidth={1.75} />} editable>
+        <InfoCard icon={<Heart size={18} color={colors.textMuted} strokeWidth={1.75} />}>
           <AppText variant="caption" color={profile.preferences ? colors.textPrimary : colors.textPlaceholder}>
             {profile.preferences ?? 'Click to add preferences'}
           </AppText>
@@ -91,7 +91,7 @@ export default function FanDetailsScreen({ conversation }: Props) {
 
         <View style={styles.divider} />
 
-        <InfoCard title="Noted" editable>
+        <InfoCard title="Noted">
           <AppText variant="caption" color={profile.note ? colors.textPrimary : colors.textPlaceholder}>{profile.note ?? 'Add a private note'}</AppText>
         </InfoCard>
       </ScrollView>
