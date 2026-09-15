@@ -1,0 +1,21 @@
+    ✕ BUG: a server without an idempotency key stores the retried send twice (4 ms)
+    ✓ FIX: the server remembers accepted clientIds and returns the existing message (1 ms)
+    ✓ accepted messages survive a server restart (same storage, new instance)
+    ✓ typed failures: recoverable vs not
+
+  ● duplicate send after a lost response › BUG: a server without an idempotency key stores the retried send twice
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 2
+
+      20 |   test('BUG: a server without an idempotency key stores the retried send twice', async () => {
+      21 |     const { server, faults } = setup(NaiveChatServer);
+    > 22 |     expect(await lostResponseThenRetry(server, faults)).toBe(1);
+         |                                                         ^
+      23 |   });
+      24 |
+      25 |   test('FIX: the server remembers accepted clientIds and returns the existing message', async () => {
+
+      at Object.toBe (src/__tests__/duplicateSend.test.ts:22:57)

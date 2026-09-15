@@ -1,0 +1,112 @@
+import type { ChatApi } from '../api/ChatApi';
+import { SendError, type ClientId, type ServerId, type ServerMessage } from '../api/types';
+import type { KeyValueStorage } from '@/storage/KeyValueStorage';
+import type { Faults } from './faults';
+import { generateHistory } from './historyGenerator';
+import { pageOf } from './historySource';
+
+interface Thread {
+  messages: ServerMessage[];             // ascending by seq
+  acceptedByClientId: Record<ClientId, ServerId>;
+  nextSeq: number;
+}
+
+const KEY = (chatId: string) => `chat.v1.${chatId}`;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export interface ServerOptions {
+  /** History size seeded on first access of a thread. */
+  seedCount?: number;
+  /** Seed per chat so each thread is a different deterministic conversation. */
+  seedFor?: (chatId: string) => number;
+}
+
+/**
+ * In-process stand-in for the chat backend. Owns message ids and order, persists
+ * every accepted send to its own storage namespace, and is idempotent on clientId.
+ */
+export class MockChatServer implements ChatApi {
+  private threads = new Map<string, Thread>();
+
+  constructor(protected storage: KeyValueStorage, protected faults: () => Faults, protected opts: ServerOptions = {}) {}
+
+  protected thread(chatId: string): Thread {
+    let t = this.threads.get(chatId);
+    if (!t) {
+      const raw = this.storage.get(KEY(chatId));
+      if (raw) t = JSON.parse(raw) as Thread;
+      else {
+        const seed = generateHistory(this.opts.seedCount ?? 50_000, this.opts.seedFor?.(chatId) ?? 42);
+        t = { messages: seed, acceptedByClientId: {}, nextSeq: seed.length + 1 };
+        this.persist(chatId, t);
+      }
+      this.threads.set(chatId, t);
+    }
+    return t;
+  }
+
+  protected persist(chatId: string, t: Thread) { this.storage.set(KEY(chatId), JSON.stringify(t)); }
+
+  protected async gate() {
+    const f = this.faults();
+    if (f.latencyMs) await sleep(f.latencyMs);
+    if (f.offline) throw new SendError('NETWORK', true, 'You are offline');
+  }
+
+  protected maybeFail() {
+    const f = this.faults();
+    if (!f.failNextSend) return;
+    const code = f.failNextSend; f.failNextSend = null;
+    if (code === 'RATE_LIMITED') throw new SendError(code, true, 'Too many messages, try again in a moment');
+    if (code === 'PAYMENT_REQUIRED') throw new SendError(code, false, 'Subscription required to send messages');
+    throw new SendError('BLOCKED', false, "You can't message this fan");
+  }
+
+  /** Persist the message, then decide whether the client gets to see the response. */
+  protected accept(chatId: string, t: Thread, input: { clientId: ClientId; text: string; createdAt: number }): ServerMessage {
+    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, clientId: input.clientId, seq: t.nextSeq++, authorId: 'creator', text: input.text, createdAt: Date.now(), kind: 'text' };
+    t.messages.push(msg);
+    this.persist(chatId, t);
+    return msg;
+  }
+
+  protected maybeDropResponse() {
+    const f = this.faults();
+    if (f.dropNextResponse) { f.dropNextResponse = false; throw new SendError('NETWORK', true, 'Response lost'); }
+  }
+
+  async send(input: { chatId: string; clientId: ClientId; text: string; createdAt: number }): Promise<ServerMessage> {
+    await this.gate();
+    this.maybeFail();
+    const t = this.thread(input.chatId);
+    const existing = t.acceptedByClientId[input.clientId];
+    if (existing) return t.messages.find((m) => m.id === existing)!;   // retry of an accepted send → same message
+    const msg = this.accept(input.chatId, t, input);
+    t.acceptedByClientId[input.clientId] = msg.id;
+    this.persist(input.chatId, t);
+    this.maybeDropResponse();
+    return msg;
+  }
+
+  async sync(chatId: string, sinceSeq: number) {
+    await this.gate();
+    return this.thread(chatId).messages.filter((m) => m.seq > sinceSeq);
+  }
+
+  async getPage(chatId: string, beforeSeq: number | null, limit: number) {
+    await this.gate();
+    return pageOf(this.thread(chatId).messages, beforeSeq, limit);
+  }
+
+  /** Dev panel: the fan writes while we are away. Not gated by faults (it is the server's own state). */
+  injectIncoming(chatId: string, texts: string[]): ServerMessage[] {
+    const t = this.thread(chatId);
+    const out = texts.map((text) => { const m: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, seq: t.nextSeq++, authorId: 'fan', text, createdAt: Date.now(), kind: 'text' }; t.messages.push(m); return m; });
+    this.persist(chatId, t);
+    return out;
+  }
+
+  reset() { for (const k of this.storage.keys()) this.storage.remove(k); this.threads.clear(); }
+  messageCount(chatId: string) { return this.thread(chatId).messages.length; }
+  allMessages(chatId: string) { return this.thread(chatId).messages; }
+}
