@@ -15,7 +15,7 @@ interface Props {
 const ICON = 16;
 
 /**
- * 60pt row. Left: 40pt avatar with presence. Middle: name + handle, preview.
+ * 60pt row. Left: 40pt avatar with presence. Middle: name, preview (handle lives in the thread header / fan details).
  * Right column: time on top, exactly one status mark below —
  * fan's unread count, or for our own last message: sending / delivered / seen (fan avatar) / failed.
  * Spec: docs/context/07-chat-row-states (artifact "Chat Row States").
@@ -47,11 +47,7 @@ export const ConversationRow = memo(function ConversationRow({ item, onPress }: 
       <Avatar source={fan.avatar} name={fan.name} size={40} online={online} />
 
       <View style={styles.body}>
-        <View style={styles.nameLine}>
-          <AppText variant="name" numberOfLines={1} style={styles.nameText}>
-            {fan.name} <AppText variant="name" color={colors.primary}>{fan.handle}</AppText>
-          </AppText>
-        </View>
+        <AppText variant="name" numberOfLines={1}>{fan.name}</AppText>
         <AppText variant="caption" color={previewColor} numberOfLines={1} style={unread && styles.previewUnread}>
           {preview}
         </AppText>
@@ -89,8 +85,6 @@ const styles = StyleSheet.create({
   },
   pressed: { backgroundColor: colors.primarySoft },
   body: { flex: 1, gap: 1 },
-  nameLine: { flexDirection: 'row' },
-  nameText: { flexShrink: 1 },
   previewUnread: { fontFamily: 'Inter_500Medium' },
   right: { alignItems: 'flex-end', justifyContent: 'center', minWidth: 44, gap: spacing.xs },
   time: { fontVariant: ['tabular-nums'] },
