@@ -99,6 +99,13 @@ export class MockChatServer implements ChatApi {
     return pageOf(this.thread(chatId).messages, beforeSeq, limit);
   }
 
+  /** Seeding: append one message as either party with a fixed timestamp (server-side state only). */
+  injectMessage(chatId: string, m: { authorId: 'fan' | 'creator'; text: string; createdAt: number }): ServerMessage {
+    const t = this.thread(chatId);
+    const msg: ServerMessage = { id: `m_${chatId}_${t.nextSeq}`, seq: t.nextSeq++, authorId: m.authorId, text: m.text, createdAt: m.createdAt, kind: 'text' };
+    t.messages.push(msg); this.persist(chatId, t); return msg;
+  }
+
   /** Dev panel: the fan writes while we are away. Not gated by faults (it is the server's own state). */
   injectIncoming(chatId: string, texts: string[]): ServerMessage[] {
     const t = this.thread(chatId);

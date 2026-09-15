@@ -57,10 +57,23 @@ export const container = {
     listeners.forEach((l) => l());
   },
 
-  /** Fill the account with demo data: conversations, wallet, and 50k-message threads. */
+  /**
+   * Fill the account with demo data: conversations, wallet, 50k-message threads,
+   * and make every row's "last message" real: fan-last rows end with that fan
+   * message, delivered/seen rows end with our message, failed/sending rows get a
+   * genuine outbox item. So the list, the thread and the outbox always agree.
+   */
   seedDemo() {
-    serverKV.clear(); root.chat.clear(); server.reset();
+    serverKV.clear(); root.chat.clear(); server.reset(); root.outbox.clear();
     root.demo.seed();
+    for (const c of root.demo.conversations) {
+      const { last } = c;
+      if (last.from === 'fan') { server.injectMessage(c.id, { authorId: 'fan', text: last.text, createdAt: last.at }); continue; }
+      if (last.status === 'delivered' || last.status === 'seen') { server.injectMessage(c.id, { authorId: 'creator', text: last.text, createdAt: last.at }); continue; }
+      const item = root.outbox.enqueue(c.id, last.text);
+      item.createdAt = last.at;
+      if (last.status === 'failed') root.outbox.markFailed(item.clientId, { code: 'NETWORK', recoverable: true, message: "Couldn't reach the server" });
+    }
   },
 
   onReset(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; },

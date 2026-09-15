@@ -39,7 +39,7 @@ export function generateHistory(count: number, seed = 42, endAt = DEFAULT_END_AT
       authorId: fanTurn ? 'fan' : 'creator',
       kind: isGift ? 'gift' : 'text',
       text: isGift
-        ? `You sent a $${GIFT_AMOUNTS[Math.floor(rnd() * GIFT_AMOUNTS.length)].toFixed(2)} gift!`
+        ? `Sent you a $${GIFT_AMOUNTS[Math.floor(rnd() * GIFT_AMOUNTS.length)].toFixed(2)} gift!`   // fan → creator, creator-side wording (mockup)
         : fanTurn ? pair[1] : pair[0],
       createdAt: t,
     };
