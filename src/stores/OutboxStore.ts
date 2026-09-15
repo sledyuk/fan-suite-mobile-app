@@ -25,10 +25,10 @@ export class OutboxStore {
     return it;
   }
 
-  enqueue(chatId: string, text: string, clientId: string = Crypto.randomUUID()): OutboxItem {
-    const item: OutboxItem = { clientId, chatId, text, createdAt: Date.now(), status: 'pending', attempts: 0 };
+  enqueue(chatId: string, text: string, opts: { clientId?: string; createdAt?: number } = {}): OutboxItem {
+    const item: OutboxItem = { clientId: opts.clientId ?? Crypto.randomUUID(), chatId, text, createdAt: opts.createdAt ?? Date.now(), status: 'pending', attempts: 0 };
     this.items.push(item);
-    return item;
+    return this.items[this.items.length - 1]!;   // the observable proxy, not the plain input
   }
   markSending(id: string) { const it = this.find(id); it.status = 'sending'; it.attempts += 1; }
   markPending(id: string) { const it = this.find(id); it.status = 'pending'; it.error = undefined; }

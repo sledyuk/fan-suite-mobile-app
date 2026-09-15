@@ -19,6 +19,8 @@ export interface ServerOptions {
   seedCount?: number | (() => number);
   /** Seed per chat so each thread is a different deterministic conversation. */
   seedFor?: (chatId: string) => number;
+  /** Messages appended after the generated history when a thread is first created (the "recent" tail). */
+  tailFor?: (chatId: string) => { authorId: 'fan' | 'creator'; text: string; createdAt: number }[];
 }
 
 /**
@@ -37,8 +39,10 @@ export class MockChatServer implements ChatApi {
       if (raw) t = JSON.parse(raw) as Thread;
       else {
         const count = typeof this.opts.seedCount === 'function' ? this.opts.seedCount() : (this.opts.seedCount ?? 50_000);
-        const seed = generateHistory(count, this.opts.seedFor?.(chatId) ?? 42);
-        t = { messages: seed, acceptedByClientId: {}, nextSeq: seed.length + 1 };
+        const tail = this.opts.tailFor?.(chatId) ?? [];
+        const seed = generateHistory(count, this.opts.seedFor?.(chatId) ?? 42, tail[0] ? tail[0].createdAt - 60_000 : undefined);
+        const messages = [...seed, ...tail.map((m, i) => ({ id: `m_${chatId}_${seed.length + i + 1}`, seq: seed.length + i + 1, authorId: m.authorId, text: m.text, createdAt: m.createdAt, kind: 'text' as const }))];
+        t = { messages, acceptedByClientId: {}, nextSeq: messages.length + 1 };
         this.persist(chatId, t);
       }
       this.threads.set(chatId, t);

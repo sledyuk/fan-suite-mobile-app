@@ -35,6 +35,15 @@ export function MessageList({ rows, peer, loadingOlder, onLoadOlder, onRetry, on
   useEffect(() => {
     if (lastIsMine) listRef.current?.scrollToEnd({ animated: !reduced });
   }, [lastKey, lastIsMine, reduced]);
+  // First paint: item sizes are estimates until laid out, so pin to the end again once real sizes are in.
+  const hadRows = useRef(false);
+  useEffect(() => {
+    if (hadRows.current || rows.length === 0) return;
+    hadRows.current = true;
+    const t1 = requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: false }));
+    const t2 = setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 250);
+    return () => { cancelAnimationFrame(t1); clearTimeout(t2); };
+  }, [rows.length]);
   const renderItem = useCallback(
     ({ item }: LegendListRenderItemProps<Row>) => <MessageRow row={item} peer={peer} onRetry={onRetry} onDiscard={onDiscard} />,
     [peer, onRetry, onDiscard],
